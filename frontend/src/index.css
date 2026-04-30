@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #3b82f6; 
+  --color-primary-hover: #2563eb;
+  --color-dark-bg: #0f172a;
+  --color-dark-surface: #1e293b;
+  --color-text-dim: #94a3b8;
+}
+
+body {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  margin: 0;
+  background-color: #e2e8f0; /* Default light bg for login */
+}
