@@ -5,6 +5,7 @@ import { useCart } from '@/context/CartContext';
 import Icon from '@/components/ui/AppIcon';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import BottomNav from '@/components/BottomNav';
 
 const paymentMethods = [
   { id: 'upi', name: 'UPI', description: 'Google Pay, PhonePe, Paytm', icon: 'BoltIcon', color: 'bg-primary/5', text: 'text-primary' },
@@ -198,6 +199,11 @@ export default function CheckoutClient() {
           </div>
         </div>
       )}
+
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden">
+        <BottomNav active="cart" />
+      </div>
 
       {/* Footer added back */}
       <Footer />
