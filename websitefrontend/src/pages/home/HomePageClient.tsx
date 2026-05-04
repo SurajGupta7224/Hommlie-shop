@@ -58,7 +58,7 @@ export default function HomePageClient() {
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-primary/20">
-                  <AppLogo size={24} inverted />
+                  <AppLogo size={24} />
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1">

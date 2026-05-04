@@ -5,7 +5,7 @@ import Icon from '@/components/ui/AppIcon';
 import { useCart } from '@/context/CartContext';
 
 interface BottomNavProps {
-  active: 'home' | 'categories' | 'cart' | 'profile';
+  active: 'home' | 'categories' | 'cart' | 'profile' | 'none';
 }
 
 export default function BottomNav({ active }: BottomNavProps) {

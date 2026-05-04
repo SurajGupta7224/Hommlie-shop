@@ -1,5 +1,5 @@
 
-import Icon from '@/components/ui/AppIcon';
+
 
 const steps = [
   {
