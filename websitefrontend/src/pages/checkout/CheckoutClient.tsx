@@ -123,7 +123,7 @@ export default function CheckoutClient() {
 
           {/* Right Column: Bill Details (Sticky) */}
           <div className="w-full lg:w-[380px] space-y-4">
-            <div className="bg-white rounded-2xl p-5 shadow-sm sticky top-24">
+            <div className="bg-white rounded-2xl p-5 shadow-sm lg:sticky lg:top-24">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Bill Details</h2>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
