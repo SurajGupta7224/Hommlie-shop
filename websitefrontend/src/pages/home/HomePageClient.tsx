@@ -141,43 +141,7 @@ export default function HomePageClient() {
 
         {/* Desktop: Two-column layout */}
         <div className="md:flex md:gap-8 md:pt-6">
-          {/* Left Sidebar — Desktop only */}
-          <aside className="hidden md:block w-56 flex-shrink-0">
-            <div className="sticky top-24">
-              {/* Delivery info card */}
-              <div className="bg-success/10 rounded-2xl p-4 mb-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <Icon name="BoltIcon" size={16} className="text-success" variant="solid" />
-                  <span className="text-sm font-bold text-success">10 min delivery</span>
-                </div>
-                <p className="text-xs text-muted-foreground">to {location?.split(',')?.[0]}</p>
-              </div>
 
-              {/* Category Quick Links */}
-              <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-card">
-                <div className="px-4 py-3 border-b border-border">
-                  <p className="text-xs font-bold text-foreground uppercase tracking-wide">Categories</p>
-                </div>
-                {[
-                  { name: 'Fruits', emoji: '🍎' },
-                  { name: 'Vegetables', emoji: '🥦' },
-                  { name: 'Dairy', emoji: '🥛' },
-                  { name: 'Snacks', emoji: '🍿' },
-                  { name: 'Beverages', emoji: '🧃' },
-                  { name: 'Bakery', emoji: '🍞' },
-                  { name: 'Meat', emoji: '🥩' },
-                  { name: 'Household', emoji: '🧹' },
-                ]?.map((cat) => (
-                  <Link key={cat?.name} to="/product-listing">
-                    <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-secondary transition-colors cursor-pointer border-b border-border/50 last:border-0">
-                      <span className="text-lg">{cat?.emoji}</span>
-                      <span className="text-sm font-medium text-foreground">{cat?.name}</span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </aside>
 
           {/* Main Content Area */}
           <div className="flex-1 min-w-0">
