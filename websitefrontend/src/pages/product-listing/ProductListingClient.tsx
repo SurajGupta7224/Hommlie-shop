@@ -1,12 +1,11 @@
 
 
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import Icon from '@/components/ui/AppIcon';
 import BottomNav from '@/components/BottomNav';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { useCart } from '@/context/CartContext';
 import ProductGrid from './ProductGrid';
 import SortDropdown from './SortDropdown';
 
@@ -58,7 +57,6 @@ export default function ProductListingClient() {
   const categoryParam = searchParams.get('category') || 'All';
   const subcategoryParam = searchParams.get('subcategory') || 'All';
 
-  const { getTotalItems } = useCart();
   const [activeFilter, setActiveFilter] = useState(categoryParam);
   const [activeSubFilter, setActiveSubFilter] = useState(subcategoryParam);
   const [sortBy, setSortBy] = useState('popularity');
@@ -198,24 +196,7 @@ export default function ProductListingClient() {
           </div>
         </div>
       </main>
-      {/* Floating Cart — mobile only */}
-      {getTotalItems() > 0 && (
-        <Link to="/cart" className="md:hidden">
-          <div className="fixed bottom-20 right-4 z-30 flex items-center gap-2 bg-primary text-white rounded-full px-4 py-3 shadow-primary cart-pulse cursor-pointer hover:bg-primary/90 transition-all active:scale-95">
-            <Icon name="ShoppingCartIcon" size={18} className="text-white" />
-            <span className="text-sm font-bold">{getTotalItems()} items</span>
-          </div>
-        </Link>
-      )}
-      {/* Desktop floating cart */}
-      {getTotalItems() > 0 && (
-        <Link to="/cart" className="hidden md:block">
-          <div className="fixed bottom-8 right-8 z-30 flex items-center gap-2 bg-primary text-white rounded-full px-5 py-3.5 shadow-primary cart-pulse cursor-pointer hover:bg-primary/90 transition-all active:scale-95">
-            <Icon name="ShoppingCartIcon" size={20} className="text-white" />
-            <span className="text-sm font-bold">{getTotalItems()} items</span>
-          </div>
-        </Link>
-      )}
+      {/* Floating Cart bar is now handled globally in App.tsx */}
       <div className="md:hidden">
         <BottomNav active="categories" />
       </div>

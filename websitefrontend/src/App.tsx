@@ -7,6 +7,8 @@ import CheckoutClient from './pages/checkout/CheckoutClient';
 import { CartProvider } from './context/CartContext';
 import './styles/tailwind.css';
 
+import FloatingCartBar from './components/FloatingCartBar';
+
 function App() {
   return (
     <CartProvider>
@@ -18,6 +20,7 @@ function App() {
           <Route path="/product/:id" element={<ProductDetailClient />} />
           <Route path="/checkout" element={<CheckoutClient />} />
         </Routes>
+        <FloatingCartBar />
       </Router>
     </CartProvider>
   );

@@ -6,7 +6,7 @@ import Icon from '@/components/ui/AppIcon';
 
 export default function Footer() {
   return (
-    <footer className="bg-background mt-12 border-t border-blue-50">
+    <footer className="hidden md:block bg-background mt-12 border-t border-blue-50">
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-10 pb-6">
         {/* Top row */}
         <div className="flex flex-col md:flex-row md:items-start gap-8 md:gap-12 mb-8">
