@@ -12,10 +12,12 @@ import BestSellers from './BestSellers';
 import DealsSection from './DealsSection';
 import HowItWorks from './HowItWorks';
 import Footer from '@/components/Footer';
+import LoginModal from '@/components/LoginModal';
 
 export default function HomePageClient() {
   const [location, setLocation] = useState('Koramangala, Bengaluru');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const { getTotalItems } = useCart();
   const headerRef = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -83,9 +85,12 @@ export default function HomePageClient() {
                     </span>
                   )}
                 </Link>
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center transition-all active:scale-90">
+                <button 
+                  onClick={() => setIsLoginOpen(true)}
+                  className="w-10 h-10 rounded-full bg-muted flex items-center justify-center transition-all active:scale-90"
+                >
                   <Icon name="UserIcon" size={20} className="text-foreground" />
-                </div>
+                </button>
               </div>
             </div>
             
@@ -179,10 +184,13 @@ export default function HomePageClient() {
                   </span>
                 )}
               </Link>
-              <Link to="/" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors">
+              <button 
+                onClick={() => setIsLoginOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
+              >
                 <Icon name="UserIcon" size={16} className="text-muted-foreground" />
                 Profile
-              </Link>
+              </button>
             </nav>
 
             {/* Delivery Badge — desktop only */}
@@ -275,6 +283,9 @@ export default function HomePageClient() {
         </div>
       </main>
       <HowItWorks />
+      
+      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+
       {/* Footer — desktop only */}
       <div className="hidden md:block">
         <Footer />
