@@ -118,10 +118,10 @@ export default function CartClient() {
                     <p className="text-white/80 text-xs font-medium">Total Amount</p>
                     <p className="text-white text-lg font-bold">₹{getTotalPrice() + (getTotalPrice() < 199 ? 30 : 0)}</p>
                   </div>
-                  <button className="bg-white text-primary font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2">
+                  <Link to="/checkout" className="bg-white text-primary font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2">
                     Checkout
                     <Icon name="ArrowRightIcon" size={16} className="text-primary" />
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -137,10 +137,10 @@ export default function CartClient() {
               <p className="text-white/80 text-xs font-medium">Total Amount</p>
               <p className="text-white text-lg font-bold">₹{getTotalPrice() + (getTotalPrice() < 199 ? 30 : 0)}</p>
             </div>
-            <button className="bg-white text-primary font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2">
+            <Link to="/checkout" className="bg-white text-primary font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2">
               Checkout
               <Icon name="ArrowRightIcon" size={16} className="text-primary" />
-            </button>
+            </Link>
           </div>
         </div>
       )}

@@ -18,7 +18,7 @@ export default function HomePageClient() {
   const [location, setLocation] = useState('Koramangala, Bengaluru');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const { getTotalItems } = useCart();
+  const { getTotalItems, addItem, getItemQty } = useCart();
   const headerRef = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
 
@@ -99,25 +99,61 @@ export default function HomePageClient() {
               <SearchBar />
             </div>
 
-            {/* Mobile Location Dropdown */}
+            {/* Mobile Location Overlay */}
             {showLocationDropdown && (
-              <div className="absolute left-4 right-4 top-14 bg-white rounded-2xl shadow-2xl border border-border z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="px-4 pt-3 pb-2 border-b border-border">
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Select Delivery Location</p>
+              <div className="md:hidden fixed inset-0 z-[100] flex flex-col bg-white animate-in slide-in-from-bottom duration-300">
+                <div className="p-4 border-b border-border flex items-center gap-3">
+                  <button 
+                    onClick={() => setShowLocationDropdown(false)}
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-muted text-foreground"
+                  >
+                    <Icon name="ArrowLeftIcon" size={20} />
+                  </button>
+                  <div className="flex-1">
+                    <h2 className="text-base font-black text-foreground">Delivery Location</h2>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Select your area</p>
+                  </div>
                 </div>
-                <div className="max-h-[60vh] overflow-y-auto no-scrollbar">
-                  {locations?.map((loc) => (
-                    <button
-                      key={loc}
-                      onClick={() => { setLocation(loc); setShowLocationDropdown(false); }}
-                      className={`w-full text-left px-4 py-3.5 text-sm font-bold transition-colors border-b border-border/50 last:border-0 ${loc === location ? 'text-primary bg-secondary' : 'text-foreground active:bg-muted'}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon name="MapPinIcon" size={16} className={loc === location ? 'text-primary' : 'text-muted-foreground'} />
-                        {loc}
-                      </div>
-                    </button>
-                  ))}
+                
+                <div className="p-4">
+                  <div className="relative mb-6">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                      <Icon name="MagnifyingGlassIcon" size={16} className="text-muted-foreground" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search for area, street name..."
+                      className="w-full bg-muted border-none rounded-xl py-3 pl-10 pr-4 text-sm font-bold text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Icon name="MapPinIcon" size={14} className="text-primary" variant="solid" />
+                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Saved Addresses</span>
+                    </div>
+                    {locations?.map((loc) => (
+                      <button
+                        key={loc}
+                        onClick={() => { setLocation(loc); setShowLocationDropdown(false); }}
+                        className={`w-full text-left p-4 rounded-2xl flex items-start gap-3 transition-all border ${loc === location ? 'bg-secondary border-primary/20 shadow-sm' : 'bg-white border-transparent hover:bg-muted'}`}
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${loc === location ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
+                          <Icon name="HomeIcon" size={16} />
+                        </div>
+                        <div className="flex-1">
+                          <p className={`text-sm font-black ${loc === location ? 'text-primary' : 'text-foreground'}`}>{loc?.split(',')?.[0]}</p>
+                          <p className="text-xs text-muted-foreground font-medium truncate">{loc}</p>
+                        </div>
+                        {loc === location && <Icon name="CheckCircleIcon" size={18} className="text-primary" variant="solid" />}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button className="w-full mt-6 flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed border-border text-primary font-black text-sm hover:bg-secondary/50 transition-colors">
+                    <Icon name="PlusIcon" size={18} variant="solid" />
+                    Add New Address
+                  </button>
                 </div>
               </div>
             )}
@@ -256,6 +292,66 @@ export default function HomePageClient() {
                     </div>
                   </Link>
                 ))}
+              </div>
+            </div>
+
+            {/* Trending Now Section */}
+            <div className="reveal active mb-8 px-1">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col">
+                  <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight">Trending Now</h2>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest leading-none mt-1">What others are ordering</p>
+                </div>
+                <Link to="/product-listing" className="group flex items-center gap-1.5 text-sm font-black text-primary transition-all">
+                  See all
+                  <Icon name="ArrowRightIcon" size={16} className="transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
+              
+              <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
+                {[
+                  { id: 't1', name: 'Fresh Avocado', weight: '500g', price: 199, oldPrice: 249, image: '🥑', color: 'bg-green-50', realImg: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=800&q=80' },
+                  { id: 't2', name: 'Red Cherries', weight: '250g', price: 349, oldPrice: 399, image: '🍒', color: 'bg-red-50', realImg: 'https://images.unsplash.com/photo-1528821128474-27f963b062bf?w=800&q=80' },
+                  { id: 't3', name: 'Organic Honey', weight: '200g', price: 149, oldPrice: 179, image: '🍯', color: 'bg-amber-50', realImg: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=800&q=80' },
+                  { id: 't4', name: 'Blueberries', weight: '125g', price: 299, oldPrice: 349, image: '🫐', color: 'bg-blue-50', realImg: 'https://images.unsplash.com/photo-1497534446932-c925b458314e?w=800&q=80' },
+                  { id: 't5', name: 'Kiwi Fruit', weight: '3 pcs', price: 99, oldPrice: 129, image: '🥝', color: 'bg-emerald-50', realImg: 'https://images.unsplash.com/photo-1585059895324-582b3c8f2584?w=800&q=80' },
+                ].map((item) => {
+                  const qty = getItemQty(item.id);
+                  return (
+                    <div key={item.id} className="flex-shrink-0 w-44 bg-white rounded-3xl border border-border/50 p-3 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                      <div className={`${item.color} rounded-2xl h-32 flex items-center justify-center text-5xl mb-3 relative overflow-hidden`}>
+                        <div className="absolute inset-0 bg-white/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        {item.image}
+                        <button 
+                          onClick={() => addItem({ id: item.id, name: item.name, price: item.price, image: item.realImg, weight: item.weight })}
+                          className="absolute bottom-2 right-2 w-8 h-8 bg-white rounded-xl shadow-lg flex items-center justify-center text-primary transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all active:scale-90"
+                        >
+                          <Icon name="PlusIcon" size={18} variant="solid" />
+                        </button>
+                        {qty > 0 && (
+                          <div className="absolute top-2 right-2 bg-primary text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-in zoom-in">
+                            {qty}
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-1 px-1">
+                        <Link to={`/product/${item.id}`}>
+                          <h3 className="text-sm font-black text-foreground truncate group-hover:text-primary transition-colors">{item.name}</h3>
+                        </Link>
+                        <p className="text-[10px] font-bold text-muted-foreground">{item.weight}</p>
+                        <div className="flex items-center justify-between pt-1">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-black text-foreground">₹{item.price}</span>
+                            <span className="text-[10px] font-bold text-muted-foreground line-through opacity-50">₹{item.oldPrice}</span>
+                          </div>
+                          <div className="bg-success/10 text-success text-[10px] font-black px-2 py-0.5 rounded-full">
+                            {Math.round(((item.oldPrice - item.price) / item.oldPrice) * 100)}%
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
