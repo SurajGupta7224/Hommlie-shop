@@ -1,6 +1,5 @@
 
 
-import React from 'react';
 
 const filters = ['All', 'Fruits', 'Vegetables', 'Dairy', 'Snacks', 'Beverages', 'Bakery'];
 

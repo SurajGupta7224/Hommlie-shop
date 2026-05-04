@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, memo } from 'react';
+import { useState, useCallback, useMemo, memo } from 'react';
 
 interface AppImageProps {
     src: string;
@@ -64,7 +64,7 @@ const AppImage = memo(function AppImage({
     const imageStyle = useMemo(() => {
         if (fill) {
             return {
-                position: 'absolute',
+                position: 'absolute' as const,
                 height: '100%',
                 width: '100%',
                 left: 0,

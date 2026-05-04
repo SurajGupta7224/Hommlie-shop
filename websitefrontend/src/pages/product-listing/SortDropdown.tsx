@@ -1,6 +1,6 @@
 
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Icon from '@/components/ui/AppIcon';
 
 const sortOptions = [

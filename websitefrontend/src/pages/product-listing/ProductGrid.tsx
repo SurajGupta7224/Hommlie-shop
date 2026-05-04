@@ -1,6 +1,6 @@
 
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useCart } from '@/context/CartContext';
 import Icon from '@/components/ui/AppIcon';
 

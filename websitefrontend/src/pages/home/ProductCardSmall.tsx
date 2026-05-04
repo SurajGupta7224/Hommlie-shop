@@ -1,6 +1,5 @@
 
 
-import React from 'react';
 import { useCart } from '@/context/CartContext';
 import Icon from '@/components/ui/AppIcon';
 
