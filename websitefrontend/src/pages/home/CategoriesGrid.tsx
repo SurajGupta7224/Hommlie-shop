@@ -17,7 +17,7 @@ export default function CategoriesGrid() {
   return (
     <div className="grid grid-cols-4 gap-2.5">
       {categories?.map((cat) => (
-        <Link key={cat?.name} to="/product-listing">
+        <Link key={cat?.name} to={`/product-listing?category=${cat?.name}`}>
           <div className={`${cat?.color} ${cat?.border} border rounded-2xl flex flex-col items-center justify-center py-3 px-1 gap-1.5 cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95`}>
             <span className="text-2xl">{cat?.emoji}</span>
             <span className="text-[11px] font-semibold text-foreground text-center leading-tight">{cat?.name}</span>

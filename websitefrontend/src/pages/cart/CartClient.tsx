@@ -15,8 +15,7 @@ export default function CartClient() {
 
   return (
     <div className="min-h-screen bg-background pb-32 md:pb-8">
-      <div className="noise-overlay" />
-
+      {/* Header */}
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center gap-3">
@@ -46,7 +45,7 @@ export default function CartClient() {
 
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <AppLogo size={24} />
-            <span className="font-bold text-sm text-foreground hidden sm:block">GrocerZap</span>
+            <span className="font-bold text-sm text-foreground hidden sm:block">Hommlie Shop</span>
           </div>
         </div>
       </header>

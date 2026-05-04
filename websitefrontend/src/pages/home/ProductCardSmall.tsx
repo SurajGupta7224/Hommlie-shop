@@ -1,5 +1,6 @@
 
 
+import { Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import Icon from '@/components/ui/AppIcon';
 
@@ -23,30 +24,32 @@ export default function ProductCardSmall({ product }: { product: Product }) {
     : 0;
 
   return (
-    <div className="product-card w-full flex flex-col">
+    <div className="product-card w-full flex flex-col group">
       {/* Image */}
-      <div className="relative h-28 bg-muted overflow-hidden">
+      <Link to={`/product/${product.id}`} className="relative h-28 bg-muted overflow-hidden block">
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         {product.badge && (
-          <span className="absolute top-1.5 left-1.5 bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+          <span className="absolute top-1.5 left-1.5 bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full z-10">
             {product.badge}
           </span>
         )}
         {discount > 0 && (
-          <span className="absolute top-1.5 right-1.5 bg-success text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+          <span className="absolute top-1.5 right-1.5 bg-success text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full z-10">
             -{discount}%
           </span>
         )}
-      </div>
+      </Link>
 
       {/* Content */}
       <div className="p-2.5 flex flex-col flex-1">
         <p className="text-[11px] text-muted-foreground font-medium mb-0.5">{product.weight}</p>
-        <p className="text-xs font-semibold text-foreground leading-tight mb-1 line-clamp-2">{product.name}</p>
+        <Link to={`/product/${product.id}`} className="block">
+          <p className="text-xs font-semibold text-foreground leading-tight mb-1 line-clamp-2 hover:text-primary transition-colors cursor-pointer">{product.name}</p>
+        </Link>
 
         {/* Rating */}
         <div className="flex items-center gap-0.5 mb-2">

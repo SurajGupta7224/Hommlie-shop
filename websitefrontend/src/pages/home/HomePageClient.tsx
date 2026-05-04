@@ -10,6 +10,7 @@ import BannerSlider from './BannerSlider';
 import CategoriesGrid from './CategoriesGrid';
 import BestSellers from './BestSellers';
 import DealsSection from './DealsSection';
+import HowItWorks from './HowItWorks';
 import Footer from '@/components/Footer';
 
 export default function HomePageClient() {
@@ -46,19 +47,83 @@ export default function HomePageClient() {
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-0">
-      <div className="noise-overlay" />
       {/* Sticky Header */}
       <header
         ref={headerRef}
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm' : 'bg-white/95 backdrop-blur-md shadow-sm'}`}
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
-          {/* Desktop Header */}
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 md:py-3">
+          {/* Mobile Header (Hidden on Desktop) */}
+          <div className="md:hidden">
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-primary/20">
+                  <AppLogo size={24} inverted />
+                </div>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] font-black text-foreground uppercase tracking-wider leading-none">Delivering to</span>
+                    <Icon name="BoltIcon" size={10} className="text-success" variant="solid" />
+                  </div>
+                  <button 
+                    onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                    className="flex items-center gap-0.5 text-sm font-black text-primary transition-all active:opacity-70"
+                  >
+                    <span className="max-w-[150px] truncate">{location?.split(',')?.[0]}</span>
+                    <Icon name="ChevronDownIcon" size={12} className="text-primary mt-0.5" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link to="/cart" className="relative w-10 h-10 rounded-full bg-secondary flex items-center justify-center transition-all active:scale-90">
+                  <Icon name="ShoppingCartIcon" size={20} className="text-primary" />
+                  {getTotalItems() > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
+                      {getTotalItems()}
+                    </span>
+                  )}
+                </Link>
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center transition-all active:scale-90">
+                  <Icon name="UserIcon" size={20} className="text-foreground" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Mobile Search Bar */}
+            <div className="relative">
+              <SearchBar />
+            </div>
+
+            {/* Mobile Location Dropdown */}
+            {showLocationDropdown && (
+              <div className="absolute left-4 right-4 top-14 bg-white rounded-2xl shadow-2xl border border-border z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="px-4 pt-3 pb-2 border-b border-border">
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Select Delivery Location</p>
+                </div>
+                <div className="max-h-[60vh] overflow-y-auto no-scrollbar">
+                  {locations?.map((loc) => (
+                    <button
+                      key={loc}
+                      onClick={() => { setLocation(loc); setShowLocationDropdown(false); }}
+                      className={`w-full text-left px-4 py-3.5 text-sm font-bold transition-colors border-b border-border/50 last:border-0 ${loc === location ? 'text-primary bg-secondary' : 'text-foreground active:bg-muted'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon name="MapPinIcon" size={16} className={loc === location ? 'text-primary' : 'text-muted-foreground'} />
+                        {loc}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop Header (Hidden on Mobile) */}
+          <div className="hidden md:flex items-center gap-4">
             {/* Logo */}
             <div className="flex items-center gap-2 flex-shrink-0">
               <AppLogo size={28} />
-              <span className="font-bold text-lg text-foreground tracking-tight">GrocerZap</span>
+              <span className="font-bold text-lg text-foreground tracking-tight">Hommlie Shop</span>
             </div>
 
             {/* Location Selector */}
@@ -129,7 +194,7 @@ export default function HomePageClient() {
         </div>
       </header>
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 md:px-8 pt-[76px]">
+      <main className="max-w-7xl mx-auto px-4 md:px-8 pt-[116px] md:pt-[76px]">
         {/* Mobile Delivery Badge */}
         <div className="flex items-center gap-2 mb-4 mt-4 md:hidden reveal active">
           <div className="flex items-center gap-1.5 bg-success/10 text-success rounded-full px-3 py-1 badge-bounce">
@@ -176,7 +241,7 @@ export default function HomePageClient() {
                   { name: 'Meat', emoji: '🥩', color: 'bg-rose-50', border: 'border-rose-100' },
                   { name: 'Household', emoji: '🧹', color: 'bg-purple-50', border: 'border-purple-100' },
                 ]?.map((cat) => (
-                  <Link key={cat?.name} to="/product-listing">
+                  <Link key={cat?.name} to={`/product-listing?category=${cat?.name}`}>
                     <div className={`${cat?.color} ${cat?.border} border rounded-2xl flex flex-col items-center justify-center py-3 px-1 gap-1.5 cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95`}>
                       <span className="text-2xl">{cat?.emoji}</span>
                       <span className="text-[11px] font-semibold text-foreground text-center leading-tight">{cat?.name}</span>
@@ -209,6 +274,7 @@ export default function HomePageClient() {
           </div>
         </div>
       </main>
+      <HowItWorks />
       {/* Footer — desktop only */}
       <div className="hidden md:block">
         <Footer />

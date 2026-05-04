@@ -6,8 +6,8 @@ import Icon from '@/components/ui/AppIcon';
 
 export default function Footer() {
   return (
-    <footer className="bg-white border-t border-gray-100 mt-12">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-10 pb-6">
+    <footer className="bg-background mt-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-10 pb-6 border-t border-border">
         {/* Top row */}
         <div className="flex flex-col md:flex-row md:items-start gap-8 md:gap-12 mb-8">
           {/* Brand */}
@@ -16,7 +16,7 @@ export default function Footer() {
               <AppLogo className="h-8 w-auto" />
             </div>
             <p className="text-sm text-gray-500 leading-relaxed">
-              Groceries delivered to your door in 10 minutes. Fresh, fast, and affordable.
+              Hommlie Shop delivered to your door in 10 minutes. Fresh, fast, and affordable.
             </p>
             <div className="flex items-center gap-1.5 mt-3">
               <span className="inline-flex items-center gap-1 bg-accent/20 text-accent text-xs font-semibold px-2.5 py-1 rounded-full">
@@ -107,7 +107,7 @@ export default function Footer() {
 
         {/* Divider */}
         <div className="border-t border-gray-100 pt-5 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-gray-400">© {new Date()?.getFullYear()} GrocerZap. All rights reserved.</p>
+          <p className="text-xs text-gray-400">© {new Date()?.getFullYear()} Hommlie Shop. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Link to="/" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">Privacy Policy</Link>
             <Link to="/" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">Terms of Service</Link>

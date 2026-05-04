@@ -42,7 +42,7 @@ export default function SearchBar() {
           onFocus={() => setFocused(true)}
           onBlur={() => setTimeout(() => setFocused(false), 150)}
           placeholder="Search for groceries..."
-          className="flex-1 text-sm font-medium text-foreground placeholder:text-muted-foreground bg-transparent outline-none"
+          className="flex-1 text-sm font-medium text-foreground placeholder:text-muted-foreground bg-transparent outline-none border-none focus:ring-0 focus:outline-none"
         />
         {query && (
           <button onClick={() => setQuery('')} className="text-muted-foreground hover:text-foreground transition-colors">
