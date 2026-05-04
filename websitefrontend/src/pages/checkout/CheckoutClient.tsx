@@ -152,7 +152,7 @@ export default function CheckoutClient() {
                 </div>
               </div>
 
-              <div className="mt-6">
+              <div className="mt-6 hidden md:block">
                 <button 
                   onClick={handlePlaceOrder}
                   disabled={isPlacing}
@@ -197,6 +197,32 @@ export default function CheckoutClient() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Mobile Sticky Pay Button */}
+      {!showSuccess && (
+        <div className="md:hidden fixed bottom-16 left-0 right-0 z-30 max-w-lg mx-auto px-4 pb-4 slide-up">
+          <button 
+            onClick={handlePlaceOrder}
+            disabled={isPlacing}
+            className={`w-full h-14 bg-primary text-white rounded-2xl text-lg font-bold shadow-lg shadow-primary/30 flex items-center justify-between px-6 transition-all active:scale-[0.98] ${isPlacing ? 'opacity-70' : ''}`}
+          >
+            <div className="flex flex-col items-start">
+              <span className="text-[10px] text-white/70 uppercase tracking-widest leading-none mb-1">Total to Pay</span>
+              <span className="text-xl leading-none">₹{finalAmount}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {isPlacing ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span>Place Order</span>
+                  <Icon name="ArrowRightIcon" size={20} />
+                </>
+              )}
+            </div>
+          </button>
         </div>
       )}
 
