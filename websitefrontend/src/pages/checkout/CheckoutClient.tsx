@@ -58,7 +58,7 @@ export default function CheckoutClient() {
     <div className="min-h-screen bg-[#F4F4F7]">
       <Header title="Checkout" showBack={true} />
 
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+      <main className="max-w-7xl mx-auto px-4 md:px-8 py-6 pb-20">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           
           {/* Left Column: Address & Payment */}

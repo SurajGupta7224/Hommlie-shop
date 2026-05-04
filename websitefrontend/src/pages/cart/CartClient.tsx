@@ -14,10 +14,10 @@ export default function CartClient() {
   const isEmpty = items?.length === 0;
 
   return (
-    <div className="min-h-screen bg-background pb-32 md:pb-8">
+    <div className="min-h-screen bg-background pb-20 md:pb-8">
       <Header title="Your Cart" showBack={true} />
 
-      <main className="max-w-7xl mx-auto px-4 md:px-8 pt-4 md:pt-6">
+      <main className="max-w-7xl mx-auto px-4 md:px-8 pt-4 md:pt-6 pb-20">
         {isEmpty ? (
           /* Empty State */
           <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -98,7 +98,7 @@ export default function CartClient() {
 
       {/* Sticky Checkout Bar — mobile only */}
       {!isEmpty && (
-        <div className="md:hidden fixed bottom-16 left-0 right-0 z-30 max-w-lg mx-auto px-4 pb-2 slide-up">
+        <div className="md:hidden fixed bottom-16 left-0 right-0 z-30 max-w-lg mx-auto px-4 pb-4 slide-up">
           <div className="bg-primary rounded-2xl p-4 shadow-primary flex items-center justify-between">
             <div>
               <p className="text-white/80 text-xs font-medium">Total Amount</p>
