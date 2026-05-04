@@ -1,11 +1,11 @@
 
 import { useEffect, useMemo } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import Icon from '@/components/ui/AppIcon';
-import AppLogo from '@/components/ui/AppLogo';
 import Footer from '@/components/Footer';
 import BottomNav from '@/components/BottomNav';
+import Header from '@/components/Header';
 
 // Mock data base (should ideally come from a shared data file or API)
 const allProducts = [
@@ -25,8 +25,7 @@ const allProducts = [
 
 export default function ProductDetailClient() {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const { addItem, removeItem, getItemQty, getTotalItems } = useCart();
+  const { addItem, removeItem, getItemQty } = useCart();
   
   const product = useMemo(() => allProducts.find(p => p.id === id) || allProducts[0], [id]);
   const qty = getItemQty(product.id);
@@ -41,43 +40,7 @@ export default function ProductDetailClient() {
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-0">
-      
-      {/* Professional Header */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => navigate(-1)} 
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-muted hover:bg-border transition-colors flex-shrink-0"
-            >
-              <Icon name="ArrowLeftIcon" size={18} className="text-foreground" />
-            </button>
-            <div className="flex-1">
-              <h1 className="text-sm font-bold text-foreground line-clamp-1">{product.name}</h1>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-[10px] text-muted-foreground">{product.category}</span>
-                <span className="text-[10px] text-muted-foreground">•</span>
-                <span className="text-[10px] text-muted-foreground">{product.weight}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <Link to="/cart" className="relative p-2 rounded-full hover:bg-muted transition-colors">
-                <Icon name="ShoppingCartIcon" size={20} className="text-foreground" />
-                {getTotalItems() > 0 && (
-                  <span className="absolute top-1 right-1 bg-primary text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                    {getTotalItems() > 9 ? '9+' : getTotalItems()}
-                  </span>
-                )}
-              </Link>
-              <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
-                <AppLogo size={24} />
-                <span className="font-bold text-sm text-foreground">Hommlie Shop</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header title={product.name} showBack={true} />
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 pt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
@@ -111,16 +74,16 @@ export default function ProductDetailClient() {
                 </div>
                 <span className="text-xs text-muted-foreground">({product.reviews} reviews)</span>
               </div>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-foreground mb-1 leading-tight">{product.name}</h2>
-              <p className="text-lg font-medium text-muted-foreground">{product.weight}</p>
+              <h2 className="text-3xl md:text-4xl font-semibold text-foreground mb-1 leading-tight">{product.name}</h2>
+              <p className="text-xl font-medium text-muted-foreground">{product.weight}</p>
             </div>
 
             <div className="flex items-end gap-3 mb-8">
-              <span className="text-3xl font-black text-foreground">₹{product.price}</span>
+              <span className="text-4xl font-semibold text-foreground">₹{product.price}</span>
               {product.originalPrice > product.price && (
                 <div className="flex flex-col mb-1">
                   <span className="text-sm text-muted-foreground line-through decoration-muted-foreground/50">₹{product.originalPrice}</span>
-                  <span className="text-xs font-bold text-success uppercase">Save ₹{product.originalPrice - product.price}</span>
+                  <span className="text-xs font-semibold text-success uppercase">Save ₹{product.originalPrice - product.price}</span>
                 </div>
               )}
             </div>
@@ -128,14 +91,14 @@ export default function ProductDetailClient() {
             {/* Action Area */}
             <div className="bg-secondary/50 border border-border p-4 rounded-2xl mb-8 flex items-center justify-between gap-4">
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Total Price</span>
-                <span className="text-lg font-extrabold text-foreground">₹{qty > 0 ? product.price * qty : product.price}</span>
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">Total Price</span>
+                <span className="text-xl font-semibold text-foreground">₹{qty > 0 ? product.price * qty : product.price}</span>
               </div>
               
               {qty === 0 ? (
                 <button 
                   onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, weight: product.weight })}
-                  className="flex-1 md:flex-none h-12 px-10 bg-primary text-white font-bold rounded-xl shadow-primary hover:bg-primary/90 transition-all active:scale-95"
+                  className="flex-1 md:flex-none h-12 px-10 bg-primary text-white font-semibold text-lg rounded-xl shadow-primary hover:bg-primary/90 transition-all active:scale-95"
                 >
                   Add to Cart
                 </button>
@@ -144,7 +107,7 @@ export default function ProductDetailClient() {
                   <button onClick={() => removeItem(product.id)} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted text-foreground transition-colors">
                     <Icon name="MinusIcon" size={18} />
                   </button>
-                  <span className="text-base font-black text-foreground w-6 text-center">{qty}</span>
+                  <span className="text-lg font-semibold text-foreground w-6 text-center">{qty}</span>
                   <button onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, weight: product.weight })} className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-white transition-colors">
                     <Icon name="PlusIcon" size={18} />
                   </button>
@@ -155,7 +118,7 @@ export default function ProductDetailClient() {
             {/* Information Tabs/Accordion Style */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-sm font-bold text-foreground uppercase tracking-widest mb-2 border-l-4 border-primary pl-3">Product Description</h3>
+                <h3 className="text-base font-semibold text-foreground uppercase tracking-widest mb-2 border-l-4 border-primary pl-3">Product Description</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {product.description}
                 </p>
@@ -165,14 +128,14 @@ export default function ProductDetailClient() {
                 <div className="p-3 bg-card border border-border rounded-xl">
                   <div className="flex items-center gap-2 mb-1">
                     <Icon name="CheckCircleIcon" size={16} className="text-success" />
-                    <span className="text-xs font-bold text-foreground">Quality Assured</span>
+                    <span className="text-xs font-semibold text-foreground">Quality Assured</span>
                   </div>
                   <p className="text-[10px] text-muted-foreground">Passed all safety & freshness checks.</p>
                 </div>
                 <div className="p-3 bg-card border border-border rounded-xl">
                   <div className="flex items-center gap-2 mb-1">
                     <Icon name="ClockIcon" size={16} className="text-primary" />
-                    <span className="text-xs font-bold text-foreground">10 Min Delivery</span>
+                    <span className="text-xs font-semibold text-foreground">10 Min Delivery</span>
                   </div>
                   <p className="text-[10px] text-muted-foreground">Delivered fresh within minutes.</p>
                 </div>
@@ -183,7 +146,7 @@ export default function ProductDetailClient() {
 
         {/* Nutritional Info Section */}
         <section className="mt-12 pt-12 border-t border-border">
-          <h3 className="text-xl font-extrabold text-foreground mb-6">Nutritional Information</h3>
+          <h3 className="text-2xl font-semibold text-foreground mb-6">Nutritional Information</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { label: 'Energy', value: '45 kcal' },
@@ -192,8 +155,8 @@ export default function ProductDetailClient() {
               { label: 'Fat', value: '0.2 g' },
             ].map(item => (
               <div key={item.label} className="bg-muted/50 p-4 rounded-2xl flex flex-col items-center text-center">
-                <span className="text-sm font-black text-foreground">{item.value}</span>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{item.label}</span>
+                <span className="text-base font-semibold text-foreground">{item.value}</span>
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">{item.label}</span>
               </div>
             ))}
           </div>
@@ -203,8 +166,8 @@ export default function ProductDetailClient() {
         {/* Related Products */}
         <section className="mt-16 mb-12">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-extrabold text-foreground">You Might Also Like</h3>
-            <Link to="/product-listing" className="text-sm font-bold text-primary hover:underline">View All</Link>
+            <h3 className="text-2xl font-semibold text-foreground">You Might Also Like</h3>
+            <Link to="/product-listing" className="text-base font-semibold text-primary hover:underline">View All</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
             {allProducts.slice(0, 6).map(p => (

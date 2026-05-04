@@ -6,8 +6,8 @@ import Icon from '@/components/ui/AppIcon';
 
 export default function Footer() {
   return (
-    <footer className="bg-background mt-12">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-10 pb-6 border-t border-border">
+    <footer className="bg-background mt-12 border-t border-blue-50">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-10 pb-6">
         {/* Top row */}
         <div className="flex flex-col md:flex-row md:items-start gap-8 md:gap-12 mb-8">
           {/* Brand */}
@@ -29,7 +29,7 @@ export default function Footer() {
           {/* Links */}
           <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-6">
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Shop</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Shop</h4>
               <ul className="space-y-2">
                 {[
                   { label: 'All Products', href: '/product-listing' },
@@ -47,7 +47,7 @@ export default function Footer() {
             </div>
 
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Company</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Company</h4>
               <ul className="space-y-2">
                 {[
                   { label: 'About Us', href: '/' },
@@ -65,7 +65,7 @@ export default function Footer() {
             </div>
 
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Support</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Support</h4>
               <ul className="space-y-2">
                 {[
                   { label: 'Help Center', href: '/' },
@@ -85,7 +85,7 @@ export default function Footer() {
 
           {/* App download */}
           <div className="md:w-48 flex-shrink-0">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Get the App</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Get the App</h4>
             <div className="space-y-2">
               <button className="w-full flex items-center gap-2.5 bg-black hover:bg-gray-800 transition-colors rounded-xl px-3 py-2.5">
                 <Icon name="DevicePhoneMobileIcon" size={20} className="text-white flex-shrink-0" />

@@ -98,14 +98,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
                 <AppLogo size={24} />
               </div>
-              <span className="text-xl font-black tracking-tight">Hommlie Shop</span>
+              <span className="text-2xl font-semibold tracking-tight">Hommlie Shop</span>
             </div>
 
             {step === 'phone' ? (
               <div className="animate-in fade-in duration-500">
-                <h2 className="text-xl md:text-2xl font-black leading-tight mb-6">
+                <h2 className="text-2xl md:text-3xl font-semibold leading-tight mb-6">
                   Shop Smarter <br />
-                  <span className="text-white/80 italic text-lg md:text-xl">Save Bigger Every Day</span>
+                  <span className="text-white/80 italic text-xl md:text-2xl">Save Bigger Every Day</span>
                 </h2>
 
                 <div className="space-y-4">
@@ -130,7 +130,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   <button
                     onClick={handleGetOtp}
                     disabled={phone.length !== 10 || isLoading}
-                    className={`w-full py-4 rounded-2xl font-black text-base transition-all active:scale-95 shadow-xl flex items-center justify-center gap-2 ${phone.length === 10 ? 'bg-white text-primary hover:bg-gray-100' : 'bg-white/20 text-white/50 cursor-not-allowed'}`}
+                    className={`w-full py-4 rounded-2xl font-semibold text-lg transition-all active:scale-95 shadow-xl flex items-center justify-center gap-2 ${phone.length === 10 ? 'bg-white text-primary hover:bg-gray-100' : 'bg-white/20 text-white/50 cursor-not-allowed'}`}
                   >
                     {isLoading ? (
                       <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -149,7 +149,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   <Icon name="ArrowLeftIcon" size={14} />
                   Change Number (+91 {phone})
                 </button>
-                <h2 className="text-xl md:text-2xl font-black leading-tight mb-2">
+                <h2 className="text-2xl md:text-3xl font-semibold leading-tight mb-2">
                   Verify OTP
                 </h2>
                 <p className="text-sm text-white/70 mb-8 font-medium">Sent to +91 {phone}</p>
@@ -173,7 +173,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
                   <button
                     disabled={!isOtpComplete || isLoading}
-                    className={`w-full py-4 rounded-2xl font-black text-base transition-all active:scale-95 shadow-xl flex items-center justify-center gap-2 ${isOtpComplete ? 'bg-white text-primary hover:bg-gray-100' : 'bg-white/20 text-white/50 cursor-not-allowed'}`}
+                    className={`w-full py-4 rounded-2xl font-semibold text-lg transition-all active:scale-95 shadow-xl flex items-center justify-center gap-2 ${isOtpComplete ? 'bg-white text-primary hover:bg-gray-100' : 'bg-white/20 text-white/50 cursor-not-allowed'}`}
                   >
                     {isLoading ? (
                       <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />

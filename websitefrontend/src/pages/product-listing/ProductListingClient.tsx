@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import AppLogo from '@/components/ui/AppLogo';
 import Icon from '@/components/ui/AppIcon';
 import BottomNav from '@/components/BottomNav';
 import Footer from '@/components/Footer';
+import Header from '@/components/Header';
 import { useCart } from '@/context/CartContext';
 import ProductGrid from './ProductGrid';
-import FilterChips from './FilterChips';
 import SortDropdown from './SortDropdown';
 
 const categories = [
@@ -81,54 +80,7 @@ export default function ProductListingClient() {
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-0">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="flex items-center justify-center w-9 h-9 rounded-full bg-muted hover:bg-border transition-colors flex-shrink-0">
-              <Icon name="ArrowLeftIcon" size={18} className="text-foreground" />
-            </Link>
-            <div className="flex-1">
-              <h1 className="text-base font-bold text-foreground">All Products</h1>
-              <p className="text-xs text-muted-foreground hidden md:block">Fresh groceries near you</p>
-            </div>
-
-            {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-1">
-              <Link to="/" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors">
-                <Icon name="HomeIcon" size={16} className="text-muted-foreground" />
-                Home
-              </Link>
-              <Link to="/product-listing" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-primary bg-secondary transition-colors">
-                <Icon name="Squares2X2Icon" size={16} className="text-primary" variant="solid" />
-                Categories
-              </Link>
-              <Link to="/cart" className="relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors">
-                <Icon name="ShoppingCartIcon" size={16} className="text-muted-foreground" />
-                Cart
-                {getTotalItems() > 0 && (
-                  <span className="absolute -top-0.5 right-0.5 bg-primary text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                    {getTotalItems() > 9 ? '9+' : getTotalItems()}
-                  </span>
-                )}
-              </Link>
-            </nav>
-
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <AppLogo size={24} />
-              <span className="font-bold text-sm text-foreground hidden sm:block">Hommlie Shop</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Filters Row */}
-        <div className="md:hidden max-w-7xl mx-auto px-4 pb-3 flex items-center gap-2">
-          <div className="flex-1 overflow-x-auto no-scrollbar">
-            <FilterChips active={activeFilter} onSelect={setActiveFilter} />
-          </div>
-          <SortDropdown value={sortBy} onChange={setSortBy} />
-        </div>
-      </header>
+      <Header title="All Products" showBack={true} />
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 pt-4 md:pt-6">
         <div className="md:flex md:gap-8">
@@ -138,7 +90,7 @@ export default function ProductListingClient() {
               {/* Sort */}
               <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-card mb-4">
                 <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-                  <p className="text-xs font-bold text-foreground uppercase tracking-wide">Sort By</p>
+                  <p className="text-xs font-semibold text-foreground uppercase tracking-wide">Sort By</p>
                 </div>
                 {[
                   { value: 'popularity', label: 'Popularity' },
@@ -160,7 +112,7 @@ export default function ProductListingClient() {
               {/* Category Filter */}
               <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-card">
                 <div className="px-4 py-3 border-b border-border">
-                  <p className="text-xs font-bold text-foreground uppercase tracking-wide">Categories</p>
+                  <p className="text-xs font-semibold text-foreground uppercase tracking-wide">Categories</p>
                 </div>
                 {categories?.map((cat) => (
                   <div key={cat?.name}>
@@ -207,7 +159,7 @@ export default function ProductListingClient() {
             {/* Desktop sort + filter bar */}
             <div className="hidden md:flex items-center justify-between mb-4">
               <div className="flex-1">
-                <h2 className="text-xl font-bold text-foreground">{activeFilter === 'All' ? 'All Products' : activeFilter}</h2>
+                <h2 className="text-2xl font-semibold text-foreground">{activeFilter === 'All' ? 'All Products' : activeFilter}</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">Showing {activeSubFilter === 'All' ? 'everything' : activeSubFilter} in {activeFilter}</p>
               </div>
               <SortDropdown value={sortBy} onChange={setSortBy} />
@@ -215,13 +167,13 @@ export default function ProductListingClient() {
 
             {/* Subcategory Cards Grid */}
             {activeFilter !== 'All' && subcategoryDetails[activeFilter] && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 mb-8 reveal active">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 mb-12 reveal active">
                 <button
                   onClick={() => setActiveSubFilter('All')}
                   className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all ${activeSubFilter === 'All' ? 'bg-primary/5 border-primary shadow-sm' : 'bg-white border-border hover:border-primary/50'}`}
                 >
                   <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center text-xl mb-2">✨</div>
-                  <span className={`text-[10px] font-bold text-center ${activeSubFilter === 'All' ? 'text-primary' : 'text-foreground'}`}>Show All</span>
+                  <span className={`text-[10px] font-semibold text-center ${activeSubFilter === 'All' ? 'text-primary' : 'text-foreground'}`}>Show All</span>
                 </button>
                 {subcategoryDetails[activeFilter].map((sub) => (
                   <button
@@ -232,7 +184,7 @@ export default function ProductListingClient() {
                     <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center text-xl mb-2 transition-transform group-hover:scale-110">
                       {sub.emoji}
                     </div>
-                    <span className={`text-[10px] font-bold text-center leading-tight ${activeSubFilter === sub.name ? 'text-primary' : 'text-foreground'}`}>
+                    <span className={`text-[10px] font-semibold text-center leading-tight ${activeSubFilter === sub.name ? 'text-primary' : 'text-foreground'}`}>
                       {sub.name}
                     </span>
                   </button>

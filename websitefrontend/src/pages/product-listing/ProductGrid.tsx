@@ -64,12 +64,12 @@ export default function ProductGrid({ filter, subFilter, sort }: ProductGridProp
             <Link to={`/product/${product.id}`} className="relative h-36 bg-muted overflow-hidden block">
               <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
               {product.badge && (
-                <span className="absolute top-2 left-2 bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full z-10 shadow-sm">
+                <span className="absolute top-2 left-2 bg-primary text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full z-10 shadow-sm">
                   {product.badge}
                 </span>
               )}
               {discount > 0 && (
-                <span className="absolute top-2 right-2 bg-success text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full z-10 shadow-sm">
+                <span className="absolute top-2 right-2 bg-success text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full z-10 shadow-sm">
                   -{discount}%
                 </span>
               )}
@@ -89,7 +89,7 @@ export default function ProductGrid({ filter, subFilter, sort }: ProductGridProp
 
               <div className="flex items-center justify-between mt-auto">
                 <div>
-                  <span className="text-base font-bold text-foreground">₹{product.price}</span>
+                  <span className="text-lg font-semibold text-foreground">₹{product.price}</span>
                   {product.originalPrice > product.price && (
                     <span className="text-[11px] text-muted-foreground line-through ml-1">₹{product.originalPrice}</span>
                   )}
@@ -105,7 +105,7 @@ export default function ProductGrid({ filter, subFilter, sort }: ProductGridProp
                 ) : (
                   <div className="flex items-center gap-1.5">
                     <button onClick={() => removeItem(product.id)} className="qty-btn">−</button>
-                    <span className="text-sm font-bold text-foreground w-4 text-center">{qty}</span>
+                    <span className="text-base font-semibold text-foreground w-4 text-center">{qty}</span>
                     <button onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, weight: product.weight })} className="qty-btn bg-primary text-white border-primary">+</button>
                   </div>
                 )}

@@ -33,12 +33,12 @@ export default function ProductCardSmall({ product }: { product: Product }) {
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         {product.badge && (
-          <span className="absolute top-1.5 left-1.5 bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full z-10">
+          <span className="absolute top-1.5 left-1.5 bg-primary text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full z-10">
             {product.badge}
           </span>
         )}
         {discount > 0 && (
-          <span className="absolute top-1.5 right-1.5 bg-success text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full z-10">
+          <span className="absolute top-1.5 right-1.5 bg-success text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full z-10">
             -{discount}%
           </span>
         )}
@@ -60,7 +60,7 @@ export default function ProductCardSmall({ product }: { product: Product }) {
         {/* Price + Add */}
         <div className="flex items-center justify-between mt-auto">
           <div>
-            <span className="text-sm font-bold text-foreground">₹{product.price}</span>
+            <span className="text-sm font-semibold text-foreground">₹{product.price}</span>
             {product.originalPrice > product.price && (
               <span className="text-[10px] text-muted-foreground line-through ml-1">₹{product.originalPrice}</span>
             )}
@@ -69,15 +69,15 @@ export default function ProductCardSmall({ product }: { product: Product }) {
           {qty === 0 ? (
             <button
               onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, weight: product.weight })}
-              className="add-btn w-7 h-7 text-base"
+              className="add-btn w-7 h-7 text-base font-semibold"
             >
               +
             </button>
           ) : (
             <div className="flex items-center gap-1">
               <button onClick={() => removeItem(product.id)} className="qty-btn">−</button>
-              <span className="text-xs font-bold text-foreground w-4 text-center">{qty}</span>
-              <button onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, weight: product.weight })} className="qty-btn bg-primary text-white border-primary hover:bg-primary/80">+</button>
+              <span className="text-xs font-semibold text-foreground w-4 text-center">{qty}</span>
+              <button onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, weight: product.weight })} className="qty-btn bg-primary text-white border-primary hover:bg-primary/80 font-semibold">+</button>
             </div>
           )}
         </div>

@@ -1,10 +1,10 @@
 
 
 import { Link } from 'react-router-dom';
-import AppLogo from '@/components/ui/AppLogo';
 import Icon from '@/components/ui/AppIcon';
 import BottomNav from '@/components/BottomNav';
 import Footer from '@/components/Footer';
+import Header from '@/components/Header';
 import { useCart } from '@/context/CartContext';
 import CartItemRow from './CartItemRow';
 import PriceSummary from './PriceSummary';
@@ -15,40 +15,7 @@ export default function CartClient() {
 
   return (
     <div className="min-h-screen bg-background pb-32 md:pb-8">
-      {/* Header */}
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center gap-3">
-          <Link to="/product-listing" className="flex items-center justify-center w-9 h-9 rounded-full bg-muted hover:bg-border transition-colors flex-shrink-0">
-            <Icon name="ArrowLeftIcon" size={18} className="text-foreground" />
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-base font-bold text-foreground">Your Cart</h1>
-            <p className="text-xs text-muted-foreground">{getTotalItems()} {getTotalItems() === 1 ? 'item' : 'items'}</p>
-          </div>
-
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            <Link to="/" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors">
-              <Icon name="HomeIcon" size={16} className="text-muted-foreground" />
-              Home
-            </Link>
-            <Link to="/product-listing" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors">
-              <Icon name="Squares2X2Icon" size={16} className="text-muted-foreground" />
-              Categories
-            </Link>
-            <Link to="/cart" className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-primary bg-secondary transition-colors">
-              <Icon name="ShoppingCartIcon" size={16} className="text-primary" variant="solid" />
-              Cart
-            </Link>
-          </nav>
-
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <AppLogo size={24} />
-            <span className="font-bold text-sm text-foreground hidden sm:block">Hommlie Shop</span>
-          </div>
-        </div>
-      </header>
+      <Header title="Your Cart" showBack={true} />
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 pt-4 md:pt-6">
         {isEmpty ? (
@@ -57,12 +24,12 @@ export default function CartClient() {
             <div className="w-24 h-24 bg-secondary rounded-full flex items-center justify-center">
               <span className="text-4xl">🛒</span>
             </div>
-            <h2 className="text-xl font-bold text-foreground">Your cart is empty</h2>
+            <h2 className="text-2xl font-semibold text-foreground">Your cart is empty</h2>
             <p className="text-sm text-muted-foreground text-center max-w-xs">
               Add items from our wide selection of fresh groceries
             </p>
             <Link to="/product-listing">
-              <button className="mt-2 bg-primary text-white font-bold text-sm px-8 py-3 rounded-full hover:bg-primary/90 transition-all active:scale-95 shadow-primary">
+              <button className="mt-2 bg-primary text-white font-semibold text-base px-8 py-3 rounded-full hover:bg-primary/90 transition-all active:scale-95 shadow-primary">
                 Start Shopping
               </button>
             </Link>
@@ -84,7 +51,7 @@ export default function CartClient() {
               {/* Cart Items */}
               <div className="bg-card border border-border rounded-2xl overflow-hidden mb-4 shadow-card">
                 <div className="px-4 py-3 border-b border-border">
-                  <h2 className="text-sm font-bold text-foreground">Order Items ({getTotalItems()})</h2>
+                  <h2 className="text-base font-semibold text-foreground">Order Items ({getTotalItems()})</h2>
                 </div>
                 <div className="divide-y divide-border">
                   {items?.map((item) => (
@@ -116,9 +83,9 @@ export default function CartClient() {
                 <div className="bg-primary rounded-2xl p-4 shadow-primary flex items-center justify-between mt-4">
                   <div>
                     <p className="text-white/80 text-xs font-medium">Total Amount</p>
-                    <p className="text-white text-lg font-bold">₹{getTotalPrice() + (getTotalPrice() < 199 ? 30 : 0)}</p>
+                    <p className="text-white text-xl font-semibold">₹{getTotalPrice() + (getTotalPrice() < 199 ? 30 : 0)}</p>
                   </div>
-                  <Link to="/checkout" className="bg-white text-primary font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2">
+                  <Link to="/checkout" className="bg-white text-primary font-semibold text-base px-6 py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2">
                     Checkout
                     <Icon name="ArrowRightIcon" size={16} className="text-primary" />
                   </Link>
@@ -137,7 +104,7 @@ export default function CartClient() {
               <p className="text-white/80 text-xs font-medium">Total Amount</p>
               <p className="text-white text-lg font-bold">₹{getTotalPrice() + (getTotalPrice() < 199 ? 30 : 0)}</p>
             </div>
-            <Link to="/checkout" className="bg-white text-primary font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2">
+            <Link to="/checkout" className="bg-white text-primary font-semibold text-base px-6 py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2">
               Checkout
               <Icon name="ArrowRightIcon" size={16} className="text-primary" />
             </Link>

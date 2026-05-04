@@ -22,7 +22,7 @@ export default function PriceSummary() {
         <span className="text-xs font-semibold text-success">You are saving ₹{discount + (items?.reduce((acc, item) => acc + ((item?.price) * item?.qty), 0) - totalOriginal < 0 ? Math.abs(items?.reduce((acc, item) => acc + ((item?.price) * item?.qty), 0) - totalOriginal) : 0)} on this order!</span>
       </div>
       <div className="px-4 py-4">
-        <h3 className="text-sm font-bold text-foreground mb-3">Price Details</h3>
+        <h3 className="text-base font-semibold text-foreground mb-3">Price Details</h3>
 
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
@@ -45,8 +45,8 @@ export default function PriceSummary() {
           <div className="h-px bg-border my-1" />
 
           <div className="flex items-center justify-between">
-            <span className="text-base font-bold text-foreground">Total</span>
-            <span className="text-base font-bold text-foreground">₹{total}</span>
+            <span className="text-lg font-semibold text-foreground">Total</span>
+            <span className="text-lg font-semibold text-foreground">₹{total}</span>
           </div>
         </div>
 
