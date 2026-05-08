@@ -1,4 +1,4 @@
-const { Country, State, City, Pincode } = require("../models/index");// GET /api/locations/countries
+const { Country, State, City, Pincode } = require("../../models/index");// GET /api/locations/countries
 const getCountries = async (req, res) => {
   try {
     const countries = await Country.findAll({ where: { trans_status: 1 } });

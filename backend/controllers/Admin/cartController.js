@@ -1,4 +1,4 @@
-const { Cart, Product, ProductVariation, WarehouseInventory } = require("../models/index");
+const { Cart, Product, ProductVariation, WarehouseInventory } = require("../../models/index");
 
 // GET /api/cart/:session_id — get cart with product/price info
 const getCart = async (req, res) => {

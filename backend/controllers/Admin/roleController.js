@@ -1,4 +1,4 @@
-const { Role, Permission } = require("../models/index");
+const { Role, Permission } = require("../../models/index");
 
 // GET /api/roles — get all roles with their permissions
 const getAllRoles = async (req, res) => {

@@ -100,17 +100,17 @@ export default function Header({ title, showBack = false }: HeaderProps) {
 
       {/* Page Title & Back Button Section (for internal pages) */}
       {(showBack || title) && (
-        <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-2 flex items-center gap-3">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-8 pt-4 pb-2 flex items-center gap-3">
           {showBack && (
             <button 
               onClick={() => navigate(-1)} 
-              className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors pr-2"
+              className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors pr-2"
             >
               <Icon name="ArrowLeftIcon" size={20} />
             </button>
           )}
           {title && (
-            <span className="text-xl font-semibold text-gray-800 tracking-tight">{title}</span>
+            <span className="text-xl md:text-2xl font-bold text-foreground tracking-tight">{title}</span>
           )}
         </div>
       )}

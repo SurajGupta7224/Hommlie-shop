@@ -17,8 +17,13 @@ function App() {
           <Route path="/" element={<HomePageClient />} />
           <Route path="/cart" element={<CartClient />} />
           <Route path="/product-listing" element={<ProductListingClient />} />
-          <Route path="/product/:id" element={<ProductDetailClient />} />
+          
+          {/* Specific routes should come before general dynamic routes */}
+          <Route path="/product/:slug" element={<ProductDetailClient />} />
           <Route path="/checkout" element={<CheckoutClient />} />
+          
+          {/* SEO Friendly Product Detail Route - Must be last to avoid catching other 3-segment routes */}
+          <Route path="/:category/:subcategory/:slug" element={<ProductDetailClient />} />
         </Routes>
         <FloatingCartBar />
       </Router>

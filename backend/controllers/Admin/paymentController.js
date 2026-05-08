@@ -1,8 +1,8 @@
-const sequelize = require("../config/db");
+const sequelize = require("../../config/db");
 const { Op } = require("sequelize");
 const {
   Payment, PaymentLog, Order, Customer, User
-} = require("../models/index");
+} = require("../../models/index");
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

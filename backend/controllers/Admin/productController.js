@@ -1,4 +1,4 @@
-const { Product, ProductVariation, ProductImage, Category, SubCategory } = require("../models/index");
+const { Product, ProductVariation, ProductImage, Category, SubCategory } = require("../../models/index");
 const { Op } = require("sequelize");
 
 // GET /api/products

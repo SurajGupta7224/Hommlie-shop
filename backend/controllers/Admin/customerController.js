@@ -1,4 +1,4 @@
-const { Customer, CustomerAddress, Pincode } = require("../models/index");
+const { Customer, CustomerAddress, Pincode } = require("../../models/index");
 const { Op } = require("sequelize");
 
 // GET /api/customers/check?mobile=XXXXXXXXXX

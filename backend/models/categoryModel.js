@@ -45,7 +45,7 @@ const Category = sequelize.define("Category", {
   tableName: "categories",
   timestamps: true,
   createdAt: "created_at",
-  updated_at: "updated_at",
+  updatedAt: "updatedAt",
 });
 
 module.exports = Category;

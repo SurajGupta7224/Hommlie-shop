@@ -10,8 +10,6 @@ require("./config/db");
 const sequelize = require("./config/db");
 require("./models/index");
 
-// Global error handlers removed to allow normal Node.js crash behavior
-
 const app = express();
 const server = http.createServer(app);
 
@@ -23,8 +21,16 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // API Routes
-const apiRoutes = require("./routes/index");
-app.use("/api", apiRoutes);
+const adminRoutes = require("./routes/index");
+const storefrontRoutes = require("./routes/Api");
+
+// Storefront routes (Public) - Priority for customer-facing paths
+app.use("/api", storefrontRoutes);
+
+// Admin routes (Protected) - Mounted on /api/admin to avoid conflicts
+app.use("/api/admin", adminRoutes);
+// Keep old prefix for compatibility if needed, but storefront routes already matched above
+app.use("/api", adminRoutes); 
 
 // Root route
 app.get("/", (req, res) => {

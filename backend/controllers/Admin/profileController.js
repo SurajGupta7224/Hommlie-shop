@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-const { User, Role, Country, State, City } = require("../models/index");
+const { User, Role, Country, State, City } = require("../../models/index");
 
 // GET /api/profile
 const getProfile = async (req, res) => {

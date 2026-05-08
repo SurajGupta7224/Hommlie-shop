@@ -2,23 +2,23 @@ const express = require("express");
 const router = express.Router();
 console.log("DEBUG: Loading API routes from routes/index.js");
 
-const { login } = require("../controllers/authController");
-const { getAllUsers, createUser, updateUser, updateUserStatus, deleteUser, getRoles } = require("../controllers/userController");
-const roleController = require("../controllers/roleController");
-const permissionController = require("../controllers/permissionController");
-const locationController = require("../controllers/locationController");
-const profileController = require("../controllers/profileController");
-const categoryController = require("../controllers/categoryController");
-const subCategoryController = require("../controllers/subCategoryController");
-const productController = require("../controllers/productController");
-const warehouseController = require("../controllers/warehouseController");
+const { login } = require("../controllers/Admin/authController");
+const { getAllUsers, createUser, updateUser, updateUserStatus, deleteUser, getRoles } = require("../controllers/Admin/userController");
+const roleController = require("../controllers/Admin/roleController");
+const permissionController = require("../controllers/Admin/permissionController");
+const locationController = require("../controllers/Admin/locationController");
+const profileController = require("../controllers/Admin/profileController");
+const categoryController = require("../controllers/Admin/categoryController");
+const subCategoryController = require("../controllers/Admin/subCategoryController");
+const productController = require("../controllers/Admin/productController");
+const warehouseController = require("../controllers/Admin/warehouseController");
 const { verifyToken, requirePermission } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
-const customerController = require("../controllers/customerController");
-const cartController = require("../controllers/cartController");
-const orderController = require("../controllers/orderController");
-const paymentController = require("../controllers/paymentController");
-const dashboardController = require("../controllers/dashboardController");
+const customerController = require("../controllers/Admin/customerController");
+const cartController = require("../controllers/Admin/cartController");
+const orderController = require("../controllers/Admin/orderController");
+const paymentController = require("../controllers/Admin/paymentController");
+const dashboardController = require("../controllers/Admin/dashboardController");
 
 // Setup file upload fields configuration
 const userUploads = upload.fields([
@@ -74,7 +74,7 @@ router.delete("/products/:id", verifyToken, requirePermission('product_managemen
 // Uses user_management permission
 router.get("/users/roles", verifyToken, requirePermission('user_management'), getRoles);
 router.get("/users", verifyToken, requirePermission('user_management'), getAllUsers);
-router.get("/users/:id", verifyToken, requirePermission('user_management'), require('../controllers/userController').getUserById);
+router.get("/users/:id", verifyToken, requirePermission('user_management'), require('../controllers/Admin/userController').getUserById);
 router.post("/users", verifyToken, requirePermission('user_management'), userUploads, createUser);
 router.put("/users/:id", verifyToken, requirePermission('user_management'), userUploads, updateUser);
 router.patch("/users/:id/status", verifyToken, requirePermission('user_management'), updateUserStatus);

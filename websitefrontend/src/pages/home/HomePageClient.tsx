@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 import Icon from '@/components/ui/AppIcon';
@@ -12,19 +12,76 @@ import DealsSection from './DealsSection';
 import HowItWorks from './HowItWorks';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import api from '@/api';
+
+// Global cache for actual data
+let cachedData: any = null;
+let currentPromise: Promise<any> | null = null;
 
 export default function HomePageClient() {
   const { addItem, getItemQty } = useCart();
+  const [data, setData] = useState<any>(cachedData);
+  const [loading, setLoading] = useState(!cachedData);
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
-    const revealEls = document.querySelectorAll('.reveal');
-    const observer = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('active'); }),
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
-    );
-    revealEls?.forEach((el) => observer?.observe(el));
-    return () => observer?.disconnect();
+    // If we have data already, just stop loading and use it
+    if (cachedData) {
+      setData(cachedData);
+      setLoading(false);
+      return;
+    }
+
+    // Singleton fetch pattern
+    const getHomeData = async () => {
+      if (currentPromise) {
+        try {
+          const resData = await currentPromise;
+          setData(resData);
+        } catch (err) {
+          console.error("Shared promise failed:", err);
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
+      try {
+        console.log("DEBUG: Initiating homepage fetch...");
+        currentPromise = api.get('/homepage').then(res => res.data.data);
+        const resData = await currentPromise;
+        cachedData = resData;
+        setData(resData);
+      } catch (error) {
+        console.error("Error fetching homepage data:", error);
+        currentPromise = null; // Reset to allow retry
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getHomeData();
   }, []);
+
+  useEffect(() => {
+    if (!loading && data) {
+      const revealEls = document.querySelectorAll('.reveal');
+      const observer = new IntersectionObserver(
+        (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('active'); }),
+        { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+      );
+      revealEls?.forEach((el) => observer?.observe(el));
+      return () => observer?.disconnect();
+    }
+  }, [loading, data]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-0">
@@ -34,12 +91,12 @@ export default function HomePageClient() {
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-6">
 
         {/* Banner Slider */}
-        <div className="reveal reveal-delay-1 active mb-8">
+        <div className="reveal active mb-8">
           <BannerSlider />
         </div>
 
         {/* Categories Grid */}
-        <div className="reveal reveal-delay-2 active mb-12">
+        <div className="reveal active mb-12">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl md:text-2xl font-semibold text-foreground tracking-tight">Shop by Category</h2>
             <Link to="/product-listing" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
@@ -47,7 +104,7 @@ export default function HomePageClient() {
               <Icon name="ChevronRightIcon" size={14} />
             </Link>
           </div>
-          <CategoriesGrid />
+          <CategoriesGrid categories={data?.shopByCategory} />
         </div>
 
         {/* Trending Now Section */}
@@ -64,21 +121,22 @@ export default function HomePageClient() {
           </div>
 
           <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
-            {[
-              { id: 't1', name: 'Fresh Avocado', weight: '500g', price: 199, oldPrice: 249, image: '🥑', color: 'bg-green-50', realImg: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=800&q=80' },
-              { id: 't2', name: 'Red Cherries', weight: '250g', price: 349, oldPrice: 399, image: '🍒', color: 'bg-red-50', realImg: 'https://images.unsplash.com/photo-1528821128474-27f963b062bf?w=800&q=80' },
-              { id: 't3', name: 'Organic Honey', weight: '200g', price: 149, oldPrice: 179, image: '🍯', color: 'bg-amber-50', realImg: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=800&q=80' },
-              { id: 't4', name: 'Blueberries', weight: '125g', price: 299, oldPrice: 349, image: '🫐', color: 'bg-blue-50', realImg: 'https://images.unsplash.com/photo-1497534446932-c925b458314e?w=800&q=80' },
-              { id: 't5', name: 'Kiwi Fruit', weight: '3 pcs', price: 99, oldPrice: 129, image: '🥝', color: 'bg-emerald-50', realImg: 'https://images.unsplash.com/photo-1585059895324-582b3c8f2584?w=800&q=80' },
-            ].map((item) => {
-              const qty = getItemQty(item.id);
+            {data?.trendingProducts?.map((item: any) => {
+              const qty = getItemQty(String(item.id));
+              const defaultVar = item.variations?.[0] || {};
+              const itemPath = `/${item.category_slug}/${item.subcategory_slug}/${item.slug}`;
+              
               return (
                 <div key={item.id} className="flex-shrink-0 w-48 bg-white rounded-[2rem] border border-border/50 p-3 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-                  <div className={`${item.color} rounded-[1.5rem] h-36 flex items-center justify-center text-5xl mb-3 relative overflow-hidden`}>
+                  <div className={`bg-gray-50 rounded-[1.5rem] h-36 flex items-center justify-center text-5xl mb-3 relative overflow-hidden`}>
                     <div className="absolute inset-0 bg-white/40 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {item.image}
+                    {item.thumbnail ? (
+                      <img src={item.thumbnail} alt={item.name} className="w-full h-full object-contain p-2" />
+                    ) : (
+                      <span className="opacity-20 text-2xl">No Img</span>
+                    )}
                     <button
-                      onClick={() => addItem({ id: item.id, name: item.name, price: item.price, image: item.realImg, weight: item.weight })}
+                      onClick={() => addItem({ id: String(item.id), name: item.name, price: defaultVar.discount_price || defaultVar.price, image: item.thumbnail, weight: defaultVar.label })}
                       className="absolute bottom-2 right-2 w-10 h-10 bg-white rounded-xl shadow-lg flex items-center justify-center text-primary transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all active:scale-90"
                     >
                       <Icon name="PlusIcon" size={20} variant="solid" />
@@ -90,18 +148,22 @@ export default function HomePageClient() {
                     )}
                   </div>
                   <div className="space-y-1 px-1">
-                    <Link to={`/product/${item.id}`}>
+                    <Link to={itemPath}>
                       <h3 className="text-base font-semibold text-foreground truncate group-hover:text-primary transition-colors">{item.name}</h3>
                     </Link>
-                    <p className="text-[11px] font-medium text-muted-foreground">{item.weight}</p>
+                    <p className="text-[11px] font-medium text-muted-foreground">{defaultVar.label}</p>
                     <div className="flex items-center justify-between pt-1">
                       <div className="flex flex-col">
-                        <span className="text-lg font-semibold text-foreground">₹{item.price}</span>
-                        <span className="text-xs font-medium text-muted-foreground line-through opacity-50">₹{item.oldPrice}</span>
+                        <span className="text-lg font-semibold text-foreground">₹{defaultVar.discount_price || defaultVar.price}</span>
+                        {defaultVar.discount_price < defaultVar.price && (
+                          <span className="text-xs font-medium text-muted-foreground line-through opacity-50">₹{defaultVar.price}</span>
+                        )}
                       </div>
-                      <div className="bg-success/10 text-success text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                        {Math.round(((item.oldPrice - item.price) / item.oldPrice) * 100)}% OFF
-                      </div>
+                      {defaultVar.discount_percent > 0 && (
+                        <div className="bg-success/10 text-success text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                          {defaultVar.discount_percent}% OFF
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -110,6 +172,7 @@ export default function HomePageClient() {
           </div>
         </div>
 
+        {/* Best Sellers Section */}
         <div className="reveal active mb-12">
           <div className="flex items-center justify-between mb-6">
             <div className="flex flex-col">
@@ -118,9 +181,10 @@ export default function HomePageClient() {
             </div>
             <Link to="/product-listing" className="text-sm font-semibold text-primary hover:underline">See all</Link>
           </div>
-          <BestSellers />
+          <BestSellers products={data?.bestSellers} />
         </div>
 
+        {/* Deals Section */}
         <div className="reveal active mb-12">
           <div className="flex items-center justify-between mb-6">
             <div className="flex flex-col">
@@ -129,11 +193,10 @@ export default function HomePageClient() {
             </div>
             <Link to="/product-listing" className="text-sm font-semibold text-primary hover:underline">See all</Link>
           </div>
-          <DealsSection />
+          <DealsSection products={data?.dealsOfDay} />
         </div>
 
         <div className="reveal active mb-12">
-
           <HowItWorks />
         </div>
       </main>

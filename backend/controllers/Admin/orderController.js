@@ -1,10 +1,10 @@
-const sequelize = require("../config/db");
+const sequelize = require("../../config/db");
 const { Op } = require("sequelize");
 const {
   Order, OrderItem, Cart, WarehouseInventory,
   WarehousePincode, Pincode, Customer, CustomerAddress,
   Warehouse, Product, ProductVariation, OrderStatusLog, User, Payment
-} = require("../models/index");
+} = require("../../models/index");
 
 // --- Helper: generate unique order number ---
 const generateOrderNumber = async () => {

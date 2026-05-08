@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { User, Role, Permission } = require("../models/index");
+const { User, Role, Permission } = require("../../models/index");
 
 // POST /api/auth/login
 const login = async (req, res) => {

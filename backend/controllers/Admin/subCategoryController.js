@@ -1,4 +1,4 @@
-const { SubCategory, Category } = require("../models/index");
+const { SubCategory, Category } = require("../../models/index");
 const { Op } = require("sequelize");
 
 // GET /api/sub-categories

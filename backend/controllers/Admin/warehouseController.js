@@ -1,4 +1,4 @@
-const { Warehouse, WarehousePincode, WarehouseInventory, Country, State, City, Pincode, Product, ProductVariation, User } = require("../models/index");
+const { Warehouse, WarehousePincode, WarehouseInventory, Country, State, City, Pincode, Product, ProductVariation, User } = require("../../models/index");
 const { Op } = require("sequelize");
 
 // --- WAREHOUSE SETUP ---

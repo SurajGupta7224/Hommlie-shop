@@ -1,4 +1,4 @@
-const { Permission } = require("../models/index");
+const { Permission } = require("../../models/index");
 
 // GET /api/permissions
 const getAllPermissions = async (req, res) => {

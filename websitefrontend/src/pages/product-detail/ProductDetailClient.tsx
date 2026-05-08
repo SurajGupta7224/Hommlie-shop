@@ -1,42 +1,118 @@
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import Icon from '@/components/ui/AppIcon';
 import Footer from '@/components/Footer';
 import BottomNav from '@/components/BottomNav';
 import Header from '@/components/Header';
-
-// Mock data base (should ideally come from a shared data file or API)
-const allProducts = [
-  { id: 'g1', name: 'Amul Taaza Milk', weight: '1 L', price: 62, originalPrice: 68, image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=800&q=80', rating: 4.8, reviews: 124, category: 'Dairy', badge: 'Bestseller', description: 'Fresh and pure milk from Amul, processed with advanced technology to ensure long-lasting freshness and nutrition.' },
-  { id: 'g2', name: 'Fresh Tomatoes', weight: '500 g', price: 28, originalPrice: 35, image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800&q=80', rating: 4.5, reviews: 86, category: 'Vegetables', badge: 'Fresh', description: 'Farm-fresh, juicy red tomatoes. Rich in Vitamin C and Lycopene, perfect for salads, curries, and sauces.' },
-  { id: 'g3', name: "Lay's Classic Salted", weight: '90 g', price: 20, originalPrice: 20, image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=800&q=80', rating: 4.7, reviews: 342, category: 'Snacks', badge: null, description: 'The classic salted potato chips from Lay\'s. Crispy, thin, and perfectly seasoned for the ultimate snacking experience.' },
-  { id: 'g4', name: 'Britannia Brown Bread', weight: '400 g', price: 45, originalPrice: 50, image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=80', rating: 4.4, reviews: 56, category: 'Bakery', badge: null, description: 'Healthy and fiber-rich whole wheat brown bread from Britannia. Ideal for a nutritious breakfast or sandwiches.' },
-  { id: 'g5', name: 'Tropicana Orange Juice', weight: '1 L', price: 99, originalPrice: 120, image: 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=800&q=80', rating: 4.6, reviews: 98, category: 'Beverages', badge: '17% off', description: '100% pure orange juice from Tropicana. No added sugar or preservatives. Packed with the goodness of real oranges.' },
-  { id: 'g6', name: 'Royal Gala Apples', weight: '1 kg', price: 149, originalPrice: 180, image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800&q=80', rating: 4.5, reviews: 112, category: 'Fruits', badge: 'Organic', description: 'Sweet and crunchy Royal Gala apples. Sourced from the finest orchards, rich in antioxidants and dietary fiber.' },
-  { id: 'g7', name: 'Paneer Fresh', weight: '200 g', price: 85, originalPrice: 95, image: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=800&q=80', rating: 4.7, reviews: 74, category: 'Dairy', badge: null, description: 'Soft and creamy fresh paneer. Made from pure milk, perfect for making your favorite Indian dishes like Palak Paneer or Matar Paneer.' },
-  { id: 'g8', name: 'Baby Spinach', weight: '250 g', price: 39, originalPrice: 45, image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=800&q=80', rating: 4.3, reviews: 45, category: 'Vegetables', badge: 'Fresh', description: 'Tender and nutritious baby spinach leaves. Pre-washed and ready to use in salads, smoothies, or sautés.' },
-  { id: 'g9', name: 'Kurkure Masala Munch', weight: '80 g', price: 20, originalPrice: 20, image: 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=800&q=80', rating: 4.5, reviews: 215, category: 'Snacks', badge: null, description: 'The famous spicy and crunchy Masala Munch from Kurkure. Made with dal, corn, and rice for a unique Indian taste.' },
-  { id: 'g10', name: 'Alphonso Mangoes', weight: '1 kg', price: 299, originalPrice: 350, image: 'https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?w=800&q=80', rating: 4.9, reviews: 180, category: 'Fruits', badge: 'Premium', description: 'The king of mangoes - Ratnagiri Alphonso. Known for its rich aroma, golden yellow texture, and incomparable sweetness.' },
-  { id: 'g11', name: 'Amul Butter', weight: '500 g', price: 245, originalPrice: 280, image: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=800&q=80', rating: 4.8, reviews: 156, category: 'Dairy', badge: null, description: 'Utterly Butterly Delicious Amul Butter. A household staple in India, perfect for spreading on bread or cooking.' },
-  { id: 'g12', name: 'Whole Wheat Atta', weight: '5 kg', price: 220, originalPrice: 260, image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&q=80', rating: 4.6, reviews: 89, category: 'Bakery', badge: '15% off', description: 'Superior quality whole wheat atta. Ground using traditional stone-grinding process to retain the natural goodness of wheat.' },
-];
+import api from '@/api';
 
 export default function ProductDetailClient() {
-  const { id } = useParams();
+  const { slug, category, subcategory } = useParams();
   const { addItem, removeItem, getItemQty } = useCart();
-  
-  const product = useMemo(() => allProducts.find(p => p.id === id) || allProducts[0], [id]);
-  const qty = getItemQty(product.id);
-  
-  const discount = product.originalPrice > product.price
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string>("");
+
+  // The actual slug to fetch
+  const actualSlug = slug || subcategory || category;
 
   useEffect(() => {
+    const fetchProductDetail = async () => {
+      if (!actualSlug) {
+        setLoading(false);
+        setErrorMsg("URL Error: Missing product identifier");
+        return;
+      }
+
+      setLoading(true);
+      setErrorMsg(null);
+      try {
+        console.log("Fetching from API:", `/products/${actualSlug}`);
+        const res = await api.get(`/products/${actualSlug}`);
+        
+        if (res.data.status === 1) {
+          const productData = res.data.data;
+          setProduct(productData);
+          setSelectedImage(productData.thumbnail || "");
+
+          // Fetch related products using category slug
+          if (productData.category_slug) {
+            const relatedRes = await api.get(`/products/category/${productData.category_slug}`);
+            if (relatedRes.data.status === 1) {
+              setRelatedProducts(relatedRes.data.data.filter((p: any) => p.slug !== actualSlug).slice(0, 6));
+            }
+          }
+        } else {
+          setErrorMsg(res.data.message || "Product not found in database");
+        }
+      } catch (error: any) {
+        console.error("API Error:", error);
+        setErrorMsg(error.response?.data?.message || error.message || "Failed to connect to server");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProductDetail();
     window.scrollTo(0, 0);
-  }, [id]);
+  }, [actualSlug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+        <p className="text-muted-foreground animate-pulse font-medium">Loading product details...</p>
+      </div>
+    );
+  }
+
+  if (errorMsg || !product) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header title="Product Not Found" showBack={true} />
+        
+        <main className="flex-1 flex flex-col items-center justify-center p-8 text-center max-w-xl mx-auto">
+          <div className="w-24 h-24 bg-secondary/50 text-primary rounded-full flex items-center justify-center mb-8 animate-bounce">
+            <Icon name="ShoppingBagIcon" size={48} />
+          </div>
+          <h2 className="text-3xl font-bold text-foreground mb-3">Oops! Product is Missing</h2>
+          <p className="text-muted-foreground mb-8 text-lg leading-relaxed">
+            The item you're looking for might have been moved or is currently unavailable. Let's get you back on track!
+          </p>
+          
+          <div className="flex flex-wrap items-center justify-center gap-4 mb-12">
+            <Link 
+              to="/" 
+              className="bg-primary text-white px-8 py-4 rounded-2xl font-bold shadow-lg hover:shadow-primary/30 transition-all hover:-translate-y-1 active:translate-y-0"
+            >
+              Continue Shopping
+            </Link>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-white border border-border text-foreground px-8 py-4 rounded-2xl font-bold shadow-sm hover:bg-muted transition-all"
+            >
+              Try Again
+            </button>
+          </div>
+        </main>
+
+        <div className="hidden md:block">
+          <Footer />
+        </div>
+        <div className="md:hidden">
+          <BottomNav active="none" />
+        </div>
+      </div>
+    );
+  }
+
+  const defaultVar = product.variations?.[0] || {};
+  const qty = getItemQty(String(product.id));
+  const discount = defaultVar.discount_percent || 0;
+  const allImages = product.images || [product.thumbnail];
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-0">
@@ -46,21 +122,42 @@ export default function ProductDetailClient() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
           
           {/* Left: Image Showcase */}
-          <div className="relative aspect-square md:aspect-auto md:h-[500px] bg-white rounded-3xl overflow-hidden shadow-sm border border-border group">
-            <img 
-              src={product.image} 
-              alt={product.name} 
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-            {product.badge && (
-              <span className="absolute top-4 left-4 bg-primary text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-lg">
-                {product.badge}
-              </span>
-            )}
-            {discount > 0 && (
-              <span className="absolute top-4 right-4 bg-success text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-lg">
-                {discount}% OFF
-              </span>
+          <div className="flex flex-col gap-4">
+            <div className="relative aspect-square md:h-[500px] bg-white rounded-3xl overflow-hidden shadow-sm border border-border group">
+              {selectedImage ? (
+                <img 
+                  src={selectedImage} 
+                  alt={product.name} 
+                  className="w-full h-full object-contain p-8 transition-transform duration-700 group-hover:scale-105"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">No image available</div>
+              )}
+              {product.is_best_seller && (
+                <span className="absolute top-4 left-4 bg-primary text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-lg">
+                  Bestseller
+                </span>
+              )}
+              {discount > 0 && (
+                <span className="absolute top-4 right-4 bg-success text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-lg">
+                  {discount}% OFF
+                </span>
+              )}
+            </div>
+
+            {/* Thumbnail Selection */}
+            {allImages.length > 1 && (
+              <div className="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar">
+                {allImages.map((img: string, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(img)}
+                    className={`flex-shrink-0 w-20 h-20 rounded-2xl border-2 overflow-hidden transition-all ${selectedImage === img ? 'border-primary shadow-lg shadow-primary/10' : 'border-border hover:border-primary/50'}`}
+                  >
+                    <img src={img} alt={`${product.name} ${idx}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
@@ -70,20 +167,20 @@ export default function ProductDetailClient() {
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex items-center gap-1 bg-accent/10 text-accent px-2 py-0.5 rounded-lg">
                   <Icon name="StarIcon" size={14} className="text-accent" variant="solid" />
-                  <span className="text-xs font-bold">{product.rating}</span>
+                  <span className="text-xs font-bold">{product.rating || 4.5}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">({product.reviews} reviews)</span>
+                <span className="text-xs text-muted-foreground">({product.review || 120} reviews)</span>
               </div>
               <h2 className="text-3xl md:text-4xl font-semibold text-foreground mb-1 leading-tight">{product.name}</h2>
-              <p className="text-xl font-medium text-muted-foreground">{product.weight}</p>
+              <p className="text-xl font-medium text-muted-foreground">{defaultVar.label}</p>
             </div>
 
             <div className="flex items-end gap-3 mb-8">
-              <span className="text-4xl font-semibold text-foreground">₹{product.price}</span>
-              {product.originalPrice > product.price && (
+              <span className="text-4xl font-semibold text-foreground">₹{defaultVar.discount_price || defaultVar.price}</span>
+              {defaultVar.discount_price < defaultVar.price && (
                 <div className="flex flex-col mb-1">
-                  <span className="text-sm text-muted-foreground line-through decoration-muted-foreground/50">₹{product.originalPrice}</span>
-                  <span className="text-xs font-semibold text-success uppercase">Save ₹{product.originalPrice - product.price}</span>
+                  <span className="text-sm text-muted-foreground line-through decoration-muted-foreground/50">₹{defaultVar.price}</span>
+                  <span className="text-xs font-semibold text-success uppercase">Save ₹{Math.round(defaultVar.price - defaultVar.discount_price)}</span>
                 </div>
               )}
             </div>
@@ -92,35 +189,34 @@ export default function ProductDetailClient() {
             <div className="bg-secondary/50 border border-border p-4 rounded-2xl mb-8 flex items-center justify-between gap-4">
               <div className="flex flex-col">
                 <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">Total Price</span>
-                <span className="text-xl font-semibold text-foreground">₹{qty > 0 ? product.price * qty : product.price}</span>
+                <span className="text-xl font-semibold text-foreground">₹{qty > 0 ? (defaultVar.discount_price || defaultVar.price) * qty : (defaultVar.discount_price || defaultVar.price)}</span>
               </div>
               
               {qty === 0 ? (
                 <button 
-                  onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, weight: product.weight })}
+                  onClick={() => addItem({ id: String(product.id), name: product.name, price: defaultVar.discount_price || defaultVar.price, image: product.thumbnail, weight: defaultVar.label })}
                   className="flex-1 md:flex-none h-12 px-10 bg-primary text-white font-semibold text-lg rounded-xl shadow-primary hover:bg-primary/90 transition-all active:scale-95"
                 >
                   Add to Cart
                 </button>
               ) : (
                 <div className="flex items-center gap-4 bg-white border border-border p-1.5 rounded-xl">
-                  <button onClick={() => removeItem(product.id)} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted text-foreground transition-colors">
+                  <button onClick={() => removeItem(String(product.id))} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted text-foreground transition-colors">
                     <Icon name="MinusIcon" size={18} />
                   </button>
                   <span className="text-lg font-semibold text-foreground w-6 text-center">{qty}</span>
-                  <button onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, weight: product.weight })} className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-white transition-colors">
+                  <button onClick={() => addItem({ id: String(product.id), name: product.name, price: defaultVar.discount_price || defaultVar.price, image: product.thumbnail, weight: defaultVar.label })} className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-white transition-colors">
                     <Icon name="PlusIcon" size={18} />
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Information Tabs/Accordion Style */}
             <div className="space-y-6">
               <div>
                 <h3 className="text-base font-semibold text-foreground uppercase tracking-widest mb-2 border-l-4 border-primary pl-3">Product Description</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {product.description}
+                   {product.description || "No description available for this product."}
                 </p>
               </div>
 
@@ -135,7 +231,7 @@ export default function ProductDetailClient() {
                 <div className="p-3 bg-card border border-border rounded-xl">
                   <div className="flex items-center gap-2 mb-1">
                     <Icon name="ClockIcon" size={16} className="text-primary" />
-                    <span className="text-xs font-semibold text-foreground">10 Min Delivery</span>
+                    <span className="text-xs font-semibold text-foreground">{product.delivery_time || "10 min"} Delivery</span>
                   </div>
                   <p className="text-[10px] text-muted-foreground">Delivered fresh within minutes.</p>
                 </div>
@@ -164,33 +260,43 @@ export default function ProductDetailClient() {
         </section>
 
         {/* Related Products */}
-        <section className="mt-16 mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-semibold text-foreground">You Might Also Like</h3>
-            <Link to="/product-listing" className="text-base font-semibold text-primary hover:underline">View All</Link>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
-            {allProducts.slice(0, 6).map(p => (
-              <Link key={p.id} to={`/product/${p.id}`} className="group">
-                <div className="bg-white border border-border rounded-2xl overflow-hidden transition-all duration-300 group-hover:shadow-card group-hover:-translate-y-1">
-                  <div className="aspect-square relative overflow-hidden bg-muted">
-                    <img src={p.image} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                  </div>
-                  <div className="p-3">
-                    <p className="text-[10px] text-muted-foreground font-bold mb-0.5">{p.weight}</p>
-                    <p className="text-xs font-bold text-foreground truncate">{p.name}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-sm font-black text-foreground">₹{p.price}</span>
-                      <div className="w-6 h-6 flex items-center justify-center rounded-lg bg-secondary text-primary transition-colors group-hover:bg-primary group-hover:text-white">
-                        <Icon name="PlusIcon" size={14} />
+        {relatedProducts.length > 0 && (
+          <section className="mt-16 mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-semibold text-foreground">You Might Also Like</h3>
+              <Link to="/product-listing" className="text-base font-semibold text-primary hover:underline">View All</Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+              {relatedProducts.map(p => {
+                const pVar = p.variations?.[0] || {};
+                const pPath = `/${p.category_slug}/${p.subcategory_slug}/${p.slug}`;
+                return (
+                  <Link key={p.id} to={pPath} className="group">
+                    <div className="bg-white border border-border rounded-2xl overflow-hidden transition-all duration-300 group-hover:shadow-card group-hover:-translate-y-1 h-full flex flex-col">
+                      <div className="aspect-square relative overflow-hidden bg-muted">
+                        {p.thumbnail ? (
+                          <img src={p.thumbnail} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[10px]">No Img</div>
+                        )}
+                      </div>
+                      <div className="p-3 flex-1 flex flex-col">
+                        <p className="text-[10px] text-muted-foreground font-bold mb-0.5">{pVar.label}</p>
+                        <p className="text-xs font-bold text-foreground truncate">{p.name}</p>
+                        <div className="flex items-center justify-between mt-auto pt-2">
+                          <span className="text-sm font-black text-foreground">₹{pVar.discount_price || pVar.price}</span>
+                          <div className="w-6 h-6 flex items-center justify-center rounded-lg bg-secondary text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                            <Icon name="PlusIcon" size={14} />
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </main>
 
       <div className="hidden md:block">

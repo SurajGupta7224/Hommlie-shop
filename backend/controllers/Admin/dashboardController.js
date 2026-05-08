@@ -1,9 +1,9 @@
 const {
   Order, Product, User, Warehouse, WarehouseInventory,
   OrderItem, ProductVariation, Customer, Role
-} = require("../models/index");
+} = require("../../models/index");
 const { Op, fn, col, literal } = require("sequelize");
-const sequelize = require("../config/db");
+const sequelize = require("../../config/db");
 
 exports.getDashboardStats = async (req, res) => {
   try {
