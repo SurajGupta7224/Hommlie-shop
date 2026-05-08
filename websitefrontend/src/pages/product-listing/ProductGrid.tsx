@@ -1,5 +1,4 @@
 
-
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
@@ -8,7 +7,7 @@ import Icon from '@/components/ui/AppIcon';
 const allProducts = [
   { id: 'g1', name: 'Amul Taaza Milk', weight: '1 L', price: 62, originalPrice: 68, image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&q=80', rating: 4.8, category: 'Dairy', subcategory: 'Milk', badge: 'Bestseller' },
   { id: 'g2', name: 'Fresh Tomatoes', weight: '500 g', price: 28, originalPrice: 35, image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&q=80', rating: 4.5, category: 'Vegetables', subcategory: 'Roots', badge: 'Fresh' },
-  { id: 'g3', name: "Lay\'s Classic Salted", weight: '90 g', price: 20, originalPrice: 20, image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=400&q=80', rating: 4.7, category: 'Snacks', subcategory: 'Chips', badge: null },
+  { id: 'g3', name: "Lay's Classic Salted", weight: '90 g', price: 20, originalPrice: 20, image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=400&q=80', rating: 4.7, category: 'Snacks', subcategory: 'Chips', badge: null },
   { id: 'g4', name: 'Britannia Brown Bread', weight: '400 g', price: 45, originalPrice: 50, image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=80', rating: 4.4, category: 'Bakery', subcategory: 'Breads', badge: null },
   { id: 'g5', name: 'Tropicana Orange Juice', weight: '1 L', price: 99, originalPrice: 120, image: 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=400&q=80', rating: 4.6, category: 'Beverages', subcategory: 'Juices', badge: '17% off' },
   { id: 'g6', name: 'Royal Gala Apples', weight: '1 kg', price: 149, originalPrice: 180, image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400&q=80', rating: 4.5, category: 'Fruits', subcategory: 'Seasonal', badge: 'Organic' },
@@ -21,24 +20,24 @@ const allProducts = [
 ];
 
 interface ProductGridProps {
-  filter: string;
-  subFilter: string;
+  category: string;
+  subcategory: string;
   sort: string;
 }
 
-export default function ProductGrid({ filter, subFilter, sort }: ProductGridProps) {
+export default function ProductGrid({ category, subcategory, sort }: ProductGridProps) {
   const { addItem, removeItem, getItemQty } = useCart();
 
   const products = useMemo(() => {
-    let list = filter === 'All' ? allProducts : allProducts.filter((p) => p.category === filter);
-    if (subFilter !== 'All') {
-      list = list.filter((p) => p.subcategory === subFilter);
+    let list = category === 'all' ? allProducts : allProducts.filter((p) => p.category === category);
+    if (subcategory !== 'all') {
+      list = list.filter((p) => p.subcategory === subcategory);
     }
     if (sort === 'price-asc') list = [...list].sort((a, b) => a.price - b.price);
     else if (sort === 'price-desc') list = [...list].sort((a, b) => b.price - a.price);
     else if (sort === 'rating') list = [...list].sort((a, b) => b.rating - a.rating);
     return list;
-  }, [filter, subFilter, sort]);
+  }, [category, subcategory, sort]);
 
   if (products.length === 0) {
     return (

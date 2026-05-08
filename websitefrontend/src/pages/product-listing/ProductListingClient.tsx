@@ -13,12 +13,13 @@ export default function ProductListingClient() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
+  const [categories, setCategories] = useState<any[]>([]);
+  const [sortBy, setSortBy] = useState('popularity');
+  
   const categorySlug = searchParams.get('category') || 'all';
   const subcategorySlug = searchParams.get('subcategory') || 'all';
 
-  const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState('popularity');
+
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -29,8 +30,6 @@ export default function ProductListingClient() {
         }
       } catch (error) {
         console.error("Error fetching categories:", error);
-      } finally {
-        setLoading(false);
       }
     };
     fetchCategories();

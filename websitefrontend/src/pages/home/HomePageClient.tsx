@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import Icon from '@/components/ui/AppIcon';
@@ -22,7 +22,7 @@ export default function HomePageClient() {
   const { addItem, getItemQty } = useCart();
   const [data, setData] = useState<any>(cachedData);
   const [loading, setLoading] = useState(!cachedData);
-  const isInitialMount = useRef(true);
+
 
   useEffect(() => {
     // If we have data already, just stop loading and use it
