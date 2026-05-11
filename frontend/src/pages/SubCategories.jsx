@@ -54,8 +54,10 @@ const SubCategories = () => {
     try {
       const res = await api.get('/categories', { params: { limit: 200, status: 1 } });
       setCategories(res.data.categories || []);
-    } catch {
+    } catch (err) {
+      console.error('Failed to load categories:', err);
       toast.error('Failed to load categories');
+      setCategories([]);
     }
   };
 
@@ -65,11 +67,15 @@ const SubCategories = () => {
       const res = await api.get('/sub-categories', {
         params: { page, search, status: statusFilter, category_id: categoryFilter, limit: 10 },
       });
-      setSubCategories(res.data.subCategories);
-      setTotalPages(res.data.pages);
-      setTotalItems(res.data.total);
-    } catch {
-      toast.error('Failed to load sub-categories');
+      setSubCategories(res.data.subCategories || []);
+      setTotalPages(res.data.pages || 1);
+      setTotalItems(res.data.total || 0);
+    } catch (err) {
+      console.error('Failed to load sub-categories:', err);
+      toast.error(err.response?.data?.message || 'Failed to load sub-categories');
+      setSubCategories([]);
+      setTotalPages(1);
+      setTotalItems(0);
     } finally {
       setLoading(false);
     }

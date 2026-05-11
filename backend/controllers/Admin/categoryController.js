@@ -13,7 +13,7 @@ const getAllCategories = async (req, res) => {
   if (status !== '') {
     where.status = status;
   }
-  where.user_id = req.user.id; // Enforce ownership
+  // Remove user_id filter - admins should see all categories
 
   try {
     const { count, rows } = await Category.findAndCountAll({

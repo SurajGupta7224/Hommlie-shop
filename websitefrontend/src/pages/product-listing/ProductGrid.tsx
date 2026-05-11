@@ -1,23 +1,40 @@
-
-import { useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import Icon from '@/components/ui/AppIcon';
+import VariationSelectionModal from '@/components/VariationSelectionModal';
+import api from '@/api';
 
-const allProducts = [
-  { id: 'g1', name: 'Amul Taaza Milk', weight: '1 L', price: 62, originalPrice: 68, image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&q=80', rating: 4.8, category: 'Dairy', subcategory: 'Milk', badge: 'Bestseller' },
-  { id: 'g2', name: 'Fresh Tomatoes', weight: '500 g', price: 28, originalPrice: 35, image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&q=80', rating: 4.5, category: 'Vegetables', subcategory: 'Roots', badge: 'Fresh' },
-  { id: 'g3', name: "Lay's Classic Salted", weight: '90 g', price: 20, originalPrice: 20, image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=400&q=80', rating: 4.7, category: 'Snacks', subcategory: 'Chips', badge: null },
-  { id: 'g4', name: 'Britannia Brown Bread', weight: '400 g', price: 45, originalPrice: 50, image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=80', rating: 4.4, category: 'Bakery', subcategory: 'Breads', badge: null },
-  { id: 'g5', name: 'Tropicana Orange Juice', weight: '1 L', price: 99, originalPrice: 120, image: 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=400&q=80', rating: 4.6, category: 'Beverages', subcategory: 'Juices', badge: '17% off' },
-  { id: 'g6', name: 'Royal Gala Apples', weight: '1 kg', price: 149, originalPrice: 180, image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400&q=80', rating: 4.5, category: 'Fruits', subcategory: 'Seasonal', badge: 'Organic' },
-  { id: 'g7', name: 'Paneer Fresh', weight: '200 g', price: 85, originalPrice: 95, image: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400&q=80', rating: 4.7, category: 'Dairy', subcategory: 'Paneer', badge: null },
-  { id: 'g8', name: 'Baby Spinach', weight: '250 g', price: 39, originalPrice: 45, image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400&q=80', rating: 4.3, category: 'Vegetables', subcategory: 'Leafy Greens', badge: 'Fresh' },
-  { id: 'g9', name: 'Kurkure Masala Munch', weight: '80 g', price: 20, originalPrice: 20, image: 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=400&q=80', rating: 4.5, category: 'Snacks', subcategory: 'Namkeen', badge: null },
-  { id: 'g10', name: 'Alphonso Mangoes', weight: '1 kg', price: 299, originalPrice: 350, image: 'https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?w=400&q=80', rating: 4.9, category: 'Fruits', subcategory: 'Exotic', badge: 'Premium' },
-  { id: 'g11', name: 'Amul Butter', weight: '500 g', price: 245, originalPrice: 280, image: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=400&q=80', rating: 4.8, category: 'Dairy', subcategory: 'Butter', badge: null },
-  { id: 'g12', name: 'Whole Wheat Atta', weight: '5 kg', price: 220, originalPrice: 260, image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&q=80', rating: 4.6, category: 'Bakery', subcategory: 'Breads', badge: '15% off' },
-];
+interface Variation {
+  id: number;
+  name: string;
+  sku: string;
+  unit: string | null;
+  weight: string | null;
+  price: number;
+  discount_price: number | null;
+  stock: number;
+}
+
+interface Product {
+  id: number;
+  product_id: number;
+  variation_id: number;
+  name: string;
+  weight: string;
+  price: number;
+  originalPrice: number;
+  image: string;
+  rating: number;
+  category: string;
+  category_slug: string;
+  subcategory: string;
+  subcategory_slug: string;
+  badge: string | null;
+  slug: string;
+  description: string;
+  variations: Variation[];
+}
 
 interface ProductGridProps {
   category: string;
@@ -26,18 +43,99 @@ interface ProductGridProps {
 }
 
 export default function ProductGrid({ category, subcategory, sort }: ProductGridProps) {
-  const { addItem, removeItem, getItemQty } = useCart();
+  const { addItem, removeItem, updateQuantity, getItemQty, items } = useCart();
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showVariationModal, setShowVariationModal] = useState(false);
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        let url = '/products';
+        if (category !== 'all') {
+          url = `/products/category/${category}`;
+        }
+        
+        const response = await api.get(url);
+        
+        if (response.data.status === 1) {
+          // Transform API response to match our expected format
+          const transformedProducts = response.data.data.map((product: any) => ({
+            id: product.id,
+            product_id: product.id,
+            variation_id: product.variations?.[0]?.id || 1,
+            name: product.name,
+            weight: product.variations?.[0]?.label || '1 unit',
+            price: product.variations?.[0]?.discount_price || product.variations?.[0]?.price || 0,
+            originalPrice: product.variations?.[0]?.price || product.variations?.[0]?.discount_price || 0,
+            image: product.thumbnail || 'https://via.placeholder.com/400',
+            rating: product.rating || 4.5,
+            category: product.category_name || 'General',
+            category_slug: product.category_slug || 'general',
+            subcategory: product.subcategory_name || 'General',
+            subcategory_slug: product.subcategory_slug || 'general',
+            badge: product.is_best_seller ? 'Bestseller' : null,
+            slug: product.slug,
+            description: product.description,
+            variations: product.variations || []
+          }));
+          
+          setAllProducts(transformedProducts);
+        } else {
+          setError('Failed to fetch products');
+        }
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Error loading products');
+        setAllProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [category]);
 
   const products = useMemo(() => {
-    let list = category === 'all' ? allProducts : allProducts.filter((p) => p.category === category);
+    let list = allProducts;
+    
+    // Filter by subcategory slug
     if (subcategory !== 'all') {
-      list = list.filter((p) => p.subcategory === subcategory);
+      list = list.filter((p) => p.subcategory_slug === subcategory);
     }
+    
+    // Sort
     if (sort === 'price-asc') list = [...list].sort((a, b) => a.price - b.price);
     else if (sort === 'price-desc') list = [...list].sort((a, b) => b.price - a.price);
     else if (sort === 'rating') list = [...list].sort((a, b) => b.rating - a.rating);
+    
     return list;
-  }, [category, subcategory, sort]);
+  }, [allProducts, subcategory, sort]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <p className="text-base font-semibold text-foreground">Loading products...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <span className="text-5xl">⚠️</span>
+        <p className="text-base font-semibold text-foreground">{error}</p>
+        <p className="text-sm text-muted-foreground">Please try again later</p>
+      </div>
+    );
+  }
 
   if (products.length === 0) {
     return (
@@ -50,17 +148,18 @@ export default function ProductGrid({ category, subcategory, sort }: ProductGrid
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-      {products.map((product) => {
-        const qty = getItemQty(product.id);
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {products.map((product) => {
+        const qty = getItemQty(product.product_id, product.variation_id);
         const discount = product.originalPrice > product.price
           ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
           : 0;
 
         return (
-          <div key={product.id} className="product-card flex flex-col group">
+          <Link key={product.id} to={`/${product.category_slug}/${product.subcategory_slug}/${product.slug}`} className="product-card flex flex-col group no-underline">
             {/* Image */}
-            <Link to={`/product/${product.id}`} className="relative h-36 bg-muted overflow-hidden block">
+            <div className="relative h-36 bg-muted overflow-hidden block rounded-t-lg">
               <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
               {product.badge && (
                 <span className="absolute top-2 left-2 bg-primary text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full z-10 shadow-sm">
@@ -72,14 +171,12 @@ export default function ProductGrid({ category, subcategory, sort }: ProductGrid
                   -{discount}%
                 </span>
               )}
-            </Link>
+            </div>
 
             {/* Content */}
             <div className="p-3 flex flex-col flex-1">
               <p className="text-[11px] text-muted-foreground font-medium mb-0.5">{product.weight}</p>
-              <Link to={`/product/${product.id}`} className="block">
-                <p className="text-sm font-semibold text-foreground leading-tight mb-1.5 line-clamp-2 hover:text-primary transition-colors cursor-pointer">{product.name}</p>
-              </Link>
+              <p className="text-sm font-semibold text-foreground leading-tight mb-1.5 line-clamp-2 hover:text-primary transition-colors cursor-pointer">{product.name}</p>
 
               <div className="flex items-center gap-1 mb-2">
                 <Icon name="StarIcon" size={11} className="text-accent" variant="solid" />
@@ -96,23 +193,67 @@ export default function ProductGrid({ category, subcategory, sort }: ProductGrid
 
                 {qty === 0 ? (
                   <button
-                    onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, weight: product.weight })}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (product.variations && product.variations.length > 1) {
+                        setSelectedProduct(product);
+                        setShowVariationModal(true);
+                      } else {
+                        addItem({ 
+                          product_id: product.product_id, 
+                          variation_id: product.variation_id
+                        });
+                      }
+                    }}
                     className="add-btn"
                   >
                     +
                   </button>
                 ) : (
-                  <div className="flex items-center gap-1.5">
-                    <button onClick={() => removeItem(product.id)} className="qty-btn">−</button>
+                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={(e) => {
+                      e.preventDefault();
+                      const cartItem = items.find(item =>
+                        item.product.id === product.product_id &&
+                        item.variation.id === product.variation_id
+                      );
+                      if (cartItem) {
+                        if (cartItem.quantity > 1) {
+                          updateQuantity(cartItem.id, cartItem.quantity - 1);
+                        } else {
+                          removeItem(product.product_id, product.variation_id);
+                        }
+                      }
+                    }} className="qty-btn">−</button>
                     <span className="text-base font-semibold text-foreground w-4 text-center">{qty}</span>
-                    <button onClick={() => addItem({ id: product.id, name: product.name, price: product.price, image: product.image, weight: product.weight })} className="qty-btn bg-primary text-white border-primary">+</button>
+                    <button onClick={(e) => {
+                      e.preventDefault();
+                      addItem({ 
+                        product_id: product.product_id, 
+                        variation_id: product.variation_id
+                      });
+                    }} className="qty-btn bg-primary text-white border-primary">+</button>
                   </div>
                 )}
               </div>
             </div>
-          </div>
+          </Link>
         );
       })}
     </div>
+      
+      {/* Variation Selection Modal */}
+      {selectedProduct && (
+        <VariationSelectionModal
+          isOpen={showVariationModal}
+          onClose={() => {
+            setShowVariationModal(false);
+            setSelectedProduct(null);
+          }}
+          product={selectedProduct}
+        />
+      )}
+    </>
   );
 }

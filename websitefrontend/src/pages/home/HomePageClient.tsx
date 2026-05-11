@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import Icon from '@/components/ui/AppIcon';
+import VariationSelectionModal from '@/components/VariationSelectionModal';
 import BottomNav from '@/components/BottomNav';
 import { useCart } from '@/context/CartContext';
 import BannerSlider from './BannerSlider';
@@ -17,19 +18,33 @@ import api from '@/api';
 // Global cache for actual data
 let cachedData: any = null;
 let currentPromise: Promise<any> | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_TTL = 60000; // 1 minute TTL for cache
 
 export default function HomePageClient() {
   const { addItem, getItemQty } = useCart();
   const [data, setData] = useState<any>(cachedData);
   const [loading, setLoading] = useState(!cachedData);
+  const [showVariationModal, setShowVariationModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
 
   useEffect(() => {
-    // If we have data already, just stop loading and use it
-    if (cachedData) {
+    // Check if cache is stale (older than TTL)
+    const now = Date.now();
+    const isStale = !cacheTimestamp || (now - cacheTimestamp) > CACHE_TTL;
+    
+    // If we have fresh cached data, use it
+    if (cachedData && !isStale) {
       setData(cachedData);
       setLoading(false);
       return;
+    }
+    
+    // Clear stale cache
+    if (isStale) {
+      cachedData = null;
+      currentPromise = null;
     }
 
     // Singleton fetch pattern
@@ -51,6 +66,7 @@ export default function HomePageClient() {
         currentPromise = api.get('/homepage').then(res => res.data.data);
         const resData = await currentPromise;
         cachedData = resData;
+        cacheTimestamp = Date.now();
         setData(resData);
       } catch (error) {
         console.error("Error fetching homepage data:", error);
@@ -84,15 +100,16 @@ export default function HomePageClient() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24 md:pb-0">
-      <Header />
+    <>
+      <div className="min-h-screen bg-background pb-24 md:pb-0">
+        <Header />
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+        {/* Main Content */}
+        <main className="max-w-7xl mx-auto px-4 md:px-8 py-6">
 
-        {/* Banner Slider */}
-        <div className="reveal active mb-8">
-          <BannerSlider />
+          {/* Banner Slider */}
+          <div className="reveal active mb-8">
+            <BannerSlider />
         </div>
 
         {/* Categories Grid */}
@@ -122,8 +139,8 @@ export default function HomePageClient() {
 
           <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
             {data?.trendingProducts?.map((item: any) => {
-              const qty = getItemQty(String(item.id));
               const defaultVar = item.variations?.[0] || {};
+              const qty = getItemQty(item.id, defaultVar.id);
               const itemPath = `/${item.category_slug}/${item.subcategory_slug}/${item.slug}`;
               
               return (
@@ -136,7 +153,17 @@ export default function HomePageClient() {
                       <span className="opacity-20 text-2xl">No Img</span>
                     )}
                     <button
-                      onClick={() => addItem({ id: String(item.id), name: item.name, price: defaultVar.discount_price || defaultVar.price, image: item.thumbnail, weight: defaultVar.label })}
+                      onClick={() => {
+                        if (item.variations && item.variations.length > 1) {
+                          setSelectedProduct(item);
+                          setShowVariationModal(true);
+                        } else {
+                          addItem({ 
+                            product_id: item.id, 
+                            variation_id: defaultVar.id
+                          });
+                        }
+                      }}
                       className="absolute bottom-2 right-2 w-10 h-10 bg-white rounded-xl shadow-lg flex items-center justify-center text-primary transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all active:scale-90"
                     >
                       <Icon name="PlusIcon" size={20} variant="solid" />
@@ -208,5 +235,20 @@ export default function HomePageClient() {
         <BottomNav active="home" />
       </div>
     </div>
+      
+      {/* Variation Selection Modal */}
+      {selectedProduct && (
+        <VariationSelectionModal
+          isOpen={showVariationModal}
+          onClose={() => setShowVariationModal(false)}
+          product={{
+            id: selectedProduct.id,
+            name: selectedProduct.name,
+            image: selectedProduct.thumbnail,
+            variations: selectedProduct.variations || []
+          }}
+        />
+      )}
+    </>
   );
 }

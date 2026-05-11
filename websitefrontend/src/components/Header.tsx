@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import AppLogo from '@/components/ui/AppLogo';
 import Icon from '@/components/ui/AppIcon';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import SearchBar from '@/pages/home/SearchBar';
 import LoginModal from '@/components/LoginModal';
 
@@ -17,6 +18,7 @@ export default function Header({ title, showBack = false }: HeaderProps) {
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const { getTotalItems } = useCart();
+  const { isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
 
   const locations = [
@@ -81,12 +83,25 @@ export default function Header({ title, showBack = false }: HeaderProps) {
                   </span>
                 )}
               </Link>
-              <button 
-                onClick={() => setIsLoginOpen(true)}
-                className="w-10 h-10 rounded-full bg-muted flex items-center justify-center transition-all active:scale-90"
-              >
-                <Icon name="UserIcon" size={20} className="text-foreground" />
-              </button>
+              {isLoggedIn ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-foreground max-w-[100px] truncate">{user?.name || user?.mobile}</span>
+                  <button 
+                    onClick={() => { logout(); navigate('/'); }}
+                    className="w-10 h-10 rounded-full bg-muted flex items-center justify-center transition-all active:scale-90 hover:bg-red-50"
+                    title="Logout"
+                  >
+                    <Icon name="ArrowRightOnRectangleIcon" size={20} className="text-foreground" />
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => setIsLoginOpen(true)}
+                  className="w-10 h-10 rounded-full bg-muted flex items-center justify-center transition-all active:scale-90"
+                >
+                  <Icon name="UserIcon" size={20} className="text-foreground" />
+                </button>
+              )}
             </div>
           </div>
 

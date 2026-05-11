@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import Icon from '@/components/ui/AppIcon';
+import VariationSelectionModal from '@/components/VariationSelectionModal';
 import Footer from '@/components/Footer';
 import BottomNav from '@/components/BottomNav';
 import Header from '@/components/Header';
@@ -16,6 +17,7 @@ export default function ProductDetailClient() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [selectedImage, setSelectedImage] = useState<string>("");
+  const [showVariationModal, setShowVariationModal] = useState(false);
 
   // The actual slug to fetch
   const actualSlug = slug || subcategory || category;
@@ -110,12 +112,13 @@ export default function ProductDetailClient() {
   }
 
   const defaultVar = product.variations?.[0] || {};
-  const qty = getItemQty(String(product.id));
+  const qty = getItemQty(product.id, defaultVar.id);
   const discount = defaultVar.discount_percent || 0;
   const allImages = product.images || [product.thumbnail];
 
   return (
-    <div className="min-h-screen bg-background pb-24 md:pb-0">
+    <>
+      <div className="min-h-screen bg-background pb-24 md:pb-0">
       <Header title={product.name} showBack={true} />
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 pt-6">
@@ -194,18 +197,32 @@ export default function ProductDetailClient() {
               
               {qty === 0 ? (
                 <button 
-                  onClick={() => addItem({ id: String(product.id), name: product.name, price: defaultVar.discount_price || defaultVar.price, image: product.thumbnail, weight: defaultVar.label })}
+                  onClick={() => {
+                    if (product.variations && product.variations.length > 1) {
+                      setShowVariationModal(true);
+                    } else {
+                      addItem({ 
+                        product_id: product.id, 
+                        variation_id: defaultVar.id
+                      });
+                    }
+                  }}
                   className="flex-1 md:flex-none h-12 px-10 bg-primary text-white font-semibold text-lg rounded-xl shadow-primary hover:bg-primary/90 transition-all active:scale-95"
                 >
                   Add to Cart
                 </button>
               ) : (
                 <div className="flex items-center gap-4 bg-white border border-border p-1.5 rounded-xl">
-                  <button onClick={() => removeItem(String(product.id))} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted text-foreground transition-colors">
+                  <button onClick={() => {
+                    removeItem(product.id, defaultVar.id);
+                  }} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted text-foreground transition-colors">
                     <Icon name="MinusIcon" size={18} />
                   </button>
                   <span className="text-lg font-semibold text-foreground w-6 text-center">{qty}</span>
-                  <button onClick={() => addItem({ id: String(product.id), name: product.name, price: defaultVar.discount_price || defaultVar.price, image: product.thumbnail, weight: defaultVar.label })} className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-white transition-colors">
+                  <button onClick={() => addItem({ 
+                    product_id: product.id, 
+                    variation_id: defaultVar.id
+                  })} className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-white transition-colors">
                     <Icon name="PlusIcon" size={18} />
                   </button>
                 </div>
@@ -308,5 +325,20 @@ export default function ProductDetailClient() {
         <BottomNav active="none" />
       </div>
     </div>
+      
+      {/* Variation Selection Modal */}
+      {product && (
+        <VariationSelectionModal
+          isOpen={showVariationModal}
+          onClose={() => setShowVariationModal(false)}
+          product={{
+            id: product.id,
+            name: product.name,
+            image: product.thumbnail,
+            variations: product.variations || []
+          }}
+        />
+      )}
+    </>
   );
 }

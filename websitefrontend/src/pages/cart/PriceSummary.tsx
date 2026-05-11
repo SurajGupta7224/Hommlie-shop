@@ -4,14 +4,14 @@ import { useCart } from '@/context/CartContext';
 import Icon from '@/components/ui/AppIcon';
 
 export default function PriceSummary() {
-  const { getTotalPrice, items } = useCart();
-  const subtotal = getTotalPrice();
+  const { getSubtotal, items } = useCart();
+  const subtotal = getSubtotal();
   const deliveryFee = subtotal < 199 ? 30 : 0;
   const discount = Math.round(subtotal * 0.05);
   const total = subtotal + deliveryFee - discount;
 
   const totalOriginal = items?.reduce((acc, item) => {
-    return acc + (item?.price * item?.qty);
+    return acc + (item?.price * item?.quantity);
   }, 0);
 
   return (
@@ -19,7 +19,7 @@ export default function PriceSummary() {
       {/* Savings Banner */}
       <div className="bg-success/10 px-4 py-2.5 flex items-center gap-2">
         <Icon name="TagIcon" size={14} className="text-success" variant="solid" />
-        <span className="text-xs font-semibold text-success">You are saving ₹{discount + (items?.reduce((acc, item) => acc + ((item?.price) * item?.qty), 0) - totalOriginal < 0 ? Math.abs(items?.reduce((acc, item) => acc + ((item?.price) * item?.qty), 0) - totalOriginal) : 0)} on this order!</span>
+        <span className="text-xs font-semibold text-success">You are saving ₹{discount + (totalOriginal - subtotal > 0 ? totalOriginal - subtotal : 0)} on this order!</span>
       </div>
       <div className="px-4 py-4">
         <h3 className="text-base font-semibold text-foreground mb-3">Price Details</h3>

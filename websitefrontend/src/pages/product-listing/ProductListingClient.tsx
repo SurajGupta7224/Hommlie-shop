@@ -89,7 +89,7 @@ export default function ProductListingClient() {
                 <div className="px-4 py-3 border-b border-border bg-muted/30">
                   <p className="text-[10px] font-bold text-foreground uppercase tracking-widest">Categories</p>
                 </div>
-                <div className="p-1 max-h-[60vh] overflow-y-auto no-scrollbar">
+                <div className="p-1 max-h-[60vh] overflow-y-auto">
                   <button
                     onClick={() => handleCategoryClick('all')}
                     className={`w-full flex items-center gap-3 px-3 py-3 text-sm font-semibold rounded-xl transition-all ${categorySlug === 'all' ? 'text-primary bg-primary/5' : 'text-foreground hover:bg-muted'}`}

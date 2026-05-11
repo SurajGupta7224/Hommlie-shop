@@ -46,11 +46,15 @@ const Categories = () => {
       const res = await api.get('/categories', {
         params: { page, search, status: statusFilter, limit: 10 }
       });
-      setCategories(res.data.categories);
-      setTotalPages(res.data.pages);
-      setTotalItems(res.data.total);
+      setCategories(res.data.categories || []);
+      setTotalPages(res.data.pages || 1);
+      setTotalItems(res.data.total || 0);
     } catch (err) {
-      toast.error("Failed to load categories");
+      console.error("Failed to load categories:", err);
+      toast.error(err.response?.data?.message || "Failed to load categories");
+      setCategories([]);
+      setTotalPages(1);
+      setTotalItems(0);
     } finally {
       setLoading(false);
     }

@@ -15,15 +15,16 @@ export default function DealsSection({ products }: DealsSectionProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
       {products.map((deal) => {
-        const qty = getItemQty(deal.id);
         const defaultVar = deal.variations?.[0] || {};
+        const qty = getItemQty(deal.id, defaultVar.id);
         const price = defaultVar.discount_price || defaultVar.price;
         const oldPrice = defaultVar.price;
 
         return (
-          <div
+          <Link
             key={deal.id}
-            className="bg-card border border-border rounded-2xl flex items-center gap-3 p-3 shadow-card hover:shadow-card-hover transition-all duration-200"
+            to={`/${deal.category_slug}/${deal.subcategory_slug}/${deal.slug}`}
+            className="bg-card border border-border rounded-2xl flex items-center gap-3 p-3 shadow-card hover:shadow-card-hover transition-all duration-200 no-underline"
           >
             {/* Image */}
             <div className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-muted">
@@ -41,9 +42,7 @@ export default function DealsSection({ products }: DealsSectionProps) {
             {/* Info */}
             <div className="flex-1 min-w-0">
               <p className="text-[11px] text-muted-foreground font-medium">{defaultVar.label}</p>
-              <Link to={`/product/${deal.slug}`}>
-                <p className="text-sm font-semibold text-foreground leading-tight truncate hover:text-primary transition-colors">{deal.name}</p>
-              </Link>
+              <p className="text-sm font-semibold text-foreground leading-tight truncate hover:text-primary transition-colors">{deal.name}</p>
               <div className="flex items-center gap-1.5 mt-1">
                 <span className="text-base font-bold text-foreground">₹{price}</span>
                 {oldPrice > price && (
@@ -59,23 +58,32 @@ export default function DealsSection({ products }: DealsSectionProps) {
               </div>
             </div>
             {/* Add button */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
               {qty === 0 ? (
                 <button
-                  onClick={() => addItem({ id: deal.id, name: deal.name, price: price, image: deal.thumbnail, weight: defaultVar.label })}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    addItem({ product_id: deal.id, variation_id: defaultVar.id });
+                  }}
                   className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-lg font-bold transition-all duration-200 active:scale-90 hover:bg-primary/90"
                 >
                   +
                 </button>
               ) : (
                 <div className="flex flex-col items-center gap-1">
-                  <button onClick={() => addItem({ id: deal.id, name: deal.name, price: price, image: deal.thumbnail, weight: defaultVar.label })} className="qty-btn bg-primary text-white border-primary">+</button>
+                  <button onClick={(e) => {
+                    e.preventDefault();
+                    addItem({ product_id: deal.id, variation_id: defaultVar.id });
+                  }} className="qty-btn bg-primary text-white border-primary">+</button>
                   <span className="text-xs font-bold text-foreground">{qty}</span>
-                  <button onClick={() => removeItem(deal.id)} className="qty-btn">−</button>
+                  <button onClick={(e) => {
+                    e.preventDefault();
+                    removeItem(deal.id, defaultVar.id);
+                  }} className="qty-btn">−</button>
                 </div>
               )}
             </div>
-          </div>
+          </Link>
         );
       })}
     </div>

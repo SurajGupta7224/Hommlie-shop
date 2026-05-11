@@ -53,14 +53,22 @@ const Products = () => {
     try {
       const res = await api.get('/categories', { params: { limit: 200, status: 1 } });
       setCategories(res.data.categories || []);
-    } catch { toast.error('Failed to load categories'); }
+    } catch (err) {
+      console.error('Failed to load categories:', err);
+      toast.error('Failed to load categories');
+      setCategories([]);
+    }
   };
 
   const fetchSubCategories = async (catId) => {
     try {
       const res = await api.get('/sub-categories', { params: { category_id: catId, limit: 200, status: 1 } });
       setSubCategories(res.data.subCategories || []);
-    } catch { toast.error('Failed to load sub-categories'); }
+    } catch (err) {
+      console.error('Failed to load sub-categories:', err);
+      toast.error('Failed to load sub-categories');
+      setSubCategories([]);
+    }
   };
 
   const fetchProducts = async () => {
@@ -69,10 +77,16 @@ const Products = () => {
       const res = await api.get('/products', {
         params: { page, search, status: statusFilter, category_id: categoryFilter, limit: 10 },
       });
-      setProducts(res.data.products);
-      setTotalPages(res.data.pages);
-      setTotalItems(res.data.total);
-    } catch { toast.error('Failed to load products'); }
+      setProducts(res.data.products || []);
+      setTotalPages(res.data.pages || 1);
+      setTotalItems(res.data.total || 0);
+    } catch (err) {
+      console.error('Failed to load products:', err);
+      toast.error(err.response?.data?.message || 'Failed to load products');
+      setProducts([]);
+      setTotalPages(1);
+      setTotalItems(0);
+    }
     finally { setLoading(false); }
   };
 

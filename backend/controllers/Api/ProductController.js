@@ -22,9 +22,29 @@ const formatProductResponse = (p) => {
     const discountPrice = parseFloat(inv.discount_price || 0);
     const discountPercent = price > 0 ? Math.round(((price - discountPrice) / price) * 100) : 0;
 
+    // Create unique variation name by combining available fields
+    let variationName = v.variation_name || v.unit || `Variation ${index + 1}`;
+    
+    // If variation_name exists but we have multiple variations, add unit or weight to make it unique
+    if (v.variation_name && (v.unit || v.weight)) {
+      const suffix = v.unit || v.weight;
+      variationName = `${v.variation_name} ${suffix}`;
+    } else if (v.unit && v.weight) {
+      // If we have both unit and weight, combine them
+      variationName = `${v.unit} - ${v.weight}`;
+    } else if (v.unit) {
+      variationName = v.unit;
+    } else if (v.weight) {
+      variationName = v.weight;
+    }
+
     return {
       id: v.id,
-      label: v.variation_name || v.unit || "",
+      name: variationName,
+      sku: v.sku || "",
+      unit: v.unit || null,
+      weight: v.weight || null,
+      label: variationName,
       price: price,
       discount_price: discountPrice,
       discount_percent: discountPercent,
@@ -76,6 +96,7 @@ const productInclude = [
   {
     model: ProductVariation,
     as: "variations",
+    attributes: ["id", "variation_name", "sku", "unit", "weight"],
     required: false,
     include: [
       {
@@ -89,7 +110,22 @@ const productInclude = [
 ];
 
 const productExclude = ["short_description", "meta_title", "meta_description", "meta_keywords", "createdAt", "updatedAt"];
-const categoryExclude = ["description", "meta_title", "meta_description", "createdAt", "updatedAt"];
+const categoryExclude = ["user_id", "description", "meta_title", "meta_description", "createdAt", "updatedAt"];
+
+// Get all products (with optional filters)
+const getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.findAll({
+      where: { status: 1 },
+      attributes: { exclude: productExclude },
+      include: productInclude
+    });
+
+    return res.status(200).json({ status: 1, message: "data fetch successfully", data: products.map(formatProductResponse) });
+  } catch (error) {
+    return res.status(500).json({ status: 0, message: error.message });
+  }
+};
 
 // Get products by Category
 const getProductsByCategory = async (req, res) => {
@@ -193,6 +229,7 @@ const getAllCategories = async (req, res) => {
 };
 
 module.exports = {
+  getAllProducts,
   getProductsByCategory,
   searchProducts,
   getProductDetail,

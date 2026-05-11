@@ -16,7 +16,7 @@ const getAllSubCategories = async (req, res) => {
   if (category_id !== '') {
     where.category_id = category_id;
   }
-  where.user_id = req.user.id; // Enforce ownership
+  // Remove user_id filter - admins should see all subcategories
 
   try {
     const { count, rows } = await SubCategory.findAndCountAll({

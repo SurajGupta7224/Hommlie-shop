@@ -10,7 +10,7 @@ const getAllProducts = async (req, res) => {
   if (status !== '') where.status = status;
   if (category_id !== '') where.category_id = category_id;
   if (subcategory_id !== '') where.subcategory_id = subcategory_id;
-  where.user_id = req.user.id; // Enforce ownership
+  // Remove user_id filter - admins should see all products
 
   try {
     const { count, rows } = await Product.findAndCountAll({

@@ -10,7 +10,7 @@ import CartItemRow from './CartItemRow';
 import PriceSummary from './PriceSummary';
 
 export default function CartClient() {
-  const { items, getTotalItems, getTotalPrice } = useCart();
+  const { items, getTotalItems, getTotalPrice, loading } = useCart();
   const isEmpty = items?.length === 0;
 
   return (
@@ -18,7 +18,12 @@ export default function CartClient() {
       <Header title="Your Cart" showBack={true} />
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 pt-4 md:pt-6 pb-20">
-        {isEmpty ? (
+        {loading ? (
+          /* Loading State */
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : isEmpty ? (
           /* Empty State */
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <div className="w-24 h-24 bg-secondary rounded-full flex items-center justify-center">

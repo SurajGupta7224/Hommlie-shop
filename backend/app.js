@@ -28,9 +28,7 @@ const storefrontRoutes = require("./routes/Api");
 app.use("/api", storefrontRoutes);
 
 // Admin routes (Protected) - Mounted on /api/admin to avoid conflicts
-app.use("/api/admin", adminRoutes);
-// Keep old prefix for compatibility if needed, but storefront routes already matched above
-app.use("/api", adminRoutes); 
+app.use("/api/admin", adminRoutes); 
 
 // Root route
 app.get("/", (req, res) => {

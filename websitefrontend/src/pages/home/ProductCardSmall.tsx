@@ -20,7 +20,8 @@ interface Product {
 
 export default function ProductCardSmall({ product }: { product: Product }) {
   const { addItem, removeItem, getItemQty } = useCart();
-  const qty = getItemQty(String(product.id));
+  const variationId = product.id; // Use product.id as variation ID for single-variation products
+  const qty = getItemQty(typeof product.id === 'string' ? parseInt(product.id) : product.id, variationId as number);
   const discount = product.originalPrice > product.price
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
@@ -80,16 +81,16 @@ export default function ProductCardSmall({ product }: { product: Product }) {
 
           {qty === 0 ? (
             <button
-              onClick={() => addItem({ id: String(product.id), name: product.name, price: product.price, image: product.image, weight: product.weight })}
+              onClick={() => addItem({ product_id: typeof product.id === 'string' ? parseInt(product.id) : product.id, variation_id: variationId as number })}
               className="add-btn w-7 h-7 text-base font-semibold"
             >
               +
             </button>
           ) : (
             <div className="flex items-center gap-1">
-              <button onClick={() => removeItem(String(product.id))} className="qty-btn">−</button>
+              <button onClick={() => removeItem(typeof product.id === 'string' ? parseInt(product.id) : product.id, variationId as number)} className="qty-btn">−</button>
               <span className="text-xs font-semibold text-foreground w-4 text-center">{qty}</span>
-              <button onClick={() => addItem({ id: String(product.id), name: product.name, price: product.price, image: product.image, weight: product.weight })} className="qty-btn bg-primary text-white border-primary hover:bg-primary/80 font-semibold">+</button>
+              <button onClick={() => addItem({ product_id: typeof product.id === 'string' ? parseInt(product.id) : product.id, variation_id: variationId as number })} className="qty-btn bg-primary text-white border-primary hover:bg-primary/80 font-semibold">+</button>
             </div>
           )}
         </div>
