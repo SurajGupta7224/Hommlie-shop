@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { useCart } from '@/context/CartContext';
-import Icon from '@/components/ui/AppIcon';
-import VariationSelectionModal from '@/components/VariationSelectionModal';
-import api from '@/api';
+import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
+import { useCart } from "@/context/CartContext";
+import Icon from "@/components/ui/AppIcon";
+import VariationSelectionModal from "@/components/VariationSelectionModal";
+import api from "@/api";
 
 interface Variation {
   id: number;
@@ -42,7 +42,11 @@ interface ProductGridProps {
   sort: string;
 }
 
-export default function ProductGrid({ category, subcategory, sort }: ProductGridProps) {
+export default function ProductGrid({
+  category,
+  subcategory,
+  sort,
+}: ProductGridProps) {
   const { addItem, removeItem, updateQuantity, getItemQty, items } = useCart();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,43 +60,51 @@ export default function ProductGrid({ category, subcategory, sort }: ProductGrid
       try {
         setLoading(true);
         setError(null);
-        
-        let url = '/products';
-        if (category !== 'all') {
+
+        let url = "/products";
+        if (category !== "all") {
           url = `/products/category/${category}`;
         }
-        
+
         const response = await api.get(url);
-        
+
         if (response.data.status === 1) {
           // Transform API response to match our expected format
-          const transformedProducts = response.data.data.map((product: any) => ({
-            id: product.id,
-            product_id: product.id,
-            variation_id: product.variations?.[0]?.id || 1,
-            name: product.name,
-            weight: product.variations?.[0]?.label || '1 unit',
-            price: product.variations?.[0]?.discount_price || product.variations?.[0]?.price || 0,
-            originalPrice: product.variations?.[0]?.price || product.variations?.[0]?.discount_price || 0,
-            image: product.thumbnail || 'https://via.placeholder.com/400',
-            rating: product.rating || 4.5,
-            category: product.category_name || 'General',
-            category_slug: product.category_slug || 'general',
-            subcategory: product.subcategory_name || 'General',
-            subcategory_slug: product.subcategory_slug || 'general',
-            badge: product.is_best_seller ? 'Bestseller' : null,
-            slug: product.slug,
-            description: product.description,
-            variations: product.variations || []
-          }));
-          
+          const transformedProducts = response.data.data.map(
+            (product: any) => ({
+              id: product.id,
+              product_id: product.id,
+              variation_id: product.variations?.[0]?.id || 1,
+              name: product.name,
+              weight: product.variations?.[0]?.label || "1 unit",
+              price:
+                product.variations?.[0]?.discount_price ||
+                product.variations?.[0]?.price ||
+                0,
+              originalPrice:
+                product.variations?.[0]?.price ||
+                product.variations?.[0]?.discount_price ||
+                0,
+              image: product.thumbnail || "https://via.placeholder.com/400",
+              rating: product.rating || 4.5,
+              category: product.category_name || "General",
+              category_slug: product.category_slug || "general",
+              subcategory: product.subcategory_name || "General",
+              subcategory_slug: product.subcategory_slug || "general",
+              badge: product.is_best_seller ? "Bestseller" : null,
+              slug: product.slug,
+              description: product.description,
+              variations: product.variations || [],
+            }),
+          );
+
           setAllProducts(transformedProducts);
         } else {
-          setError('Failed to fetch products');
+          setError("Failed to fetch products");
         }
       } catch (err) {
-        console.error('Error fetching products:', err);
-        setError('Error loading products');
+        console.error("Error fetching products:", err);
+        setError("Error loading products");
         setAllProducts([]);
       } finally {
         setLoading(false);
@@ -104,17 +116,20 @@ export default function ProductGrid({ category, subcategory, sort }: ProductGrid
 
   const products = useMemo(() => {
     let list = allProducts;
-    
+
     // Filter by subcategory slug
-    if (subcategory !== 'all') {
+    if (subcategory !== "all") {
       list = list.filter((p) => p.subcategory_slug === subcategory);
     }
-    
+
     // Sort
-    if (sort === 'price-asc') list = [...list].sort((a, b) => a.price - b.price);
-    else if (sort === 'price-desc') list = [...list].sort((a, b) => b.price - a.price);
-    else if (sort === 'rating') list = [...list].sort((a, b) => b.rating - a.rating);
-    
+    if (sort === "price-asc")
+      list = [...list].sort((a, b) => a.price - b.price);
+    else if (sort === "price-desc")
+      list = [...list].sort((a, b) => b.price - a.price);
+    else if (sort === "rating")
+      list = [...list].sort((a, b) => b.rating - a.rating);
+
     return list;
   }, [allProducts, subcategory, sort]);
 
@@ -122,7 +137,9 @@ export default function ProductGrid({ category, subcategory, sort }: ProductGrid
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <p className="text-base font-semibold text-foreground">Loading products...</p>
+        <p className="text-base font-semibold text-foreground">
+          Loading products...
+        </p>
       </div>
     );
   }
@@ -141,8 +158,12 @@ export default function ProductGrid({ category, subcategory, sort }: ProductGrid
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3">
         <span className="text-5xl">🔍</span>
-        <p className="text-base font-semibold text-foreground">No products found</p>
-        <p className="text-sm text-muted-foreground">Try a different category</p>
+        <p className="text-base font-semibold text-foreground">
+          No products found
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Try a different category
+        </p>
       </div>
     );
   }
@@ -151,98 +172,152 @@ export default function ProductGrid({ category, subcategory, sort }: ProductGrid
     <>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {products.map((product) => {
-        const qty = getItemQty(product.product_id, product.variation_id);
-        const discount = product.originalPrice > product.price
-          ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-          : 0;
+          const qty = getItemQty(product.product_id, product.variation_id);
+          const discount =
+            product.originalPrice > product.price
+              ? Math.round(
+                  ((product.originalPrice - product.price) /
+                    product.originalPrice) *
+                    100,
+                )
+              : 0;
 
-        return (
-          <Link key={product.id} to={`/${product.category_slug}/${product.subcategory_slug}/${product.slug}`} className="product-card flex flex-col group no-underline">
-            {/* Image */}
-            <div className="relative h-36 bg-muted overflow-hidden block rounded-t-lg">
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-              {product.badge && (
-                <span className="absolute top-2 left-2 bg-primary text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full z-10 shadow-sm">
-                  {product.badge}
-                </span>
-              )}
-              {discount > 0 && (
-                <span className="absolute top-2 right-2 bg-success text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full z-10 shadow-sm">
-                  -{discount}%
-                </span>
-              )}
-            </div>
-
-            {/* Content */}
-            <div className="p-3 flex flex-col flex-1">
-              <p className="text-[11px] text-muted-foreground font-medium mb-0.5">{product.weight}</p>
-              <p className="text-sm font-semibold text-foreground leading-tight mb-1.5 line-clamp-2 hover:text-primary transition-colors cursor-pointer">{product.name}</p>
-
-              <div className="flex items-center gap-1 mb-2">
-                <Icon name="StarIcon" size={11} className="text-accent" variant="solid" />
-                <span className="text-[11px] font-semibold text-foreground">{product.rating}</span>
-              </div>
-
-              <div className="flex items-center justify-between mt-auto">
-                <div>
-                  <span className="text-lg font-semibold text-foreground">₹{product.price}</span>
-                  {product.originalPrice > product.price && (
-                    <span className="text-[11px] text-muted-foreground line-through ml-1">₹{product.originalPrice}</span>
-                  )}
-                </div>
-
-                {qty === 0 ? (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (product.variations && product.variations.length > 1) {
-                        setSelectedProduct(product);
-                        setShowVariationModal(true);
-                      } else {
-                        addItem({ 
-                          product_id: product.product_id, 
-                          variation_id: product.variation_id
-                        });
-                      }
-                    }}
-                    className="add-btn"
-                  >
-                    +
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={(e) => {
-                      e.preventDefault();
-                      const cartItem = items.find(item =>
-                        item.product.id === product.product_id &&
-                        item.variation.id === product.variation_id
-                      );
-                      if (cartItem) {
-                        if (cartItem.quantity > 1) {
-                          updateQuantity(cartItem.id, cartItem.quantity - 1);
-                        } else {
-                          removeItem(product.product_id, product.variation_id);
-                        }
-                      }
-                    }} className="qty-btn">−</button>
-                    <span className="text-base font-semibold text-foreground w-4 text-center">{qty}</span>
-                    <button onClick={(e) => {
-                      e.preventDefault();
-                      addItem({ 
-                        product_id: product.product_id, 
-                        variation_id: product.variation_id
-                      });
-                    }} className="qty-btn bg-primary text-white border-primary">+</button>
-                  </div>
+          return (
+            <Link
+              key={product.id}
+              to={`/${product.category_slug}/${product.subcategory_slug}/${product.slug}`}
+              className="product-card flex flex-col group no-underline"
+            >
+              {/* Image */}
+              <div className="relative h-36 bg-muted overflow-hidden block rounded-t-lg">
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                {product.badge && (
+                  <span className="absolute top-2 left-2 bg-primary text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full z-10 shadow-sm">
+                    {product.badge}
+                  </span>
+                )}
+                {discount > 0 && (
+                  <span className="absolute top-2 right-2 bg-success text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full z-10 shadow-sm">
+                    -{discount}%
+                  </span>
                 )}
               </div>
-            </div>
-          </Link>
-        );
-      })}
-    </div>
-      
+
+              {/* Content */}
+              <div className="p-3 flex flex-col flex-1">
+                <p className="text-[11px] text-muted-foreground font-medium mb-0.5">
+                  {product.weight}
+                </p>
+                <p className="text-sm font-semibold text-foreground leading-tight mb-1.5 line-clamp-2 hover:text-primary transition-colors cursor-pointer">
+                  {product.name}
+                </p>
+
+                <div className="flex items-center gap-1 mb-2">
+                  <Icon
+                    name="StarIcon"
+                    size={11}
+                    className="text-accent"
+                    variant="solid"
+                  />
+                  <span className="text-[11px] font-semibold text-foreground">
+                    {product.rating}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between mt-auto">
+                  <div>
+                    <span className="text-lg font-semibold text-foreground">
+                      ₹{product.price}
+                    </span>
+                    {product.originalPrice > product.price && (
+                      <span className="text-[11px] text-muted-foreground line-through ml-1">
+                        ₹{product.originalPrice}
+                      </span>
+                    )}
+                  </div>
+
+                  {qty === 0 ? (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (
+                          product.variations &&
+                          product.variations.length > 1
+                        ) {
+                          setSelectedProduct(product);
+                          setShowVariationModal(true);
+                        } else {
+                          addItem({
+                            product_id: product.product_id,
+                            variation_id: product.variation_id,
+                          });
+                        }
+                      }}
+                      className="add-btn"
+                    >
+                      +
+                    </button>
+                  ) : (
+                    <div
+                      className="flex items-center gap-1.5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const cartItem = items.find(
+                            (item) =>
+                              item.product.id === product.product_id &&
+                              item.variation.id === product.variation_id,
+                          );
+                          if (cartItem) {
+                            if (cartItem.quantity > 1) {
+                              updateQuantity(
+                                cartItem.id,
+                                cartItem.quantity - 1,
+                              );
+                            } else {
+                              removeItem(
+                                product.product_id,
+                                product.variation_id,
+                              );
+                            }
+                          }
+                        }}
+                        className="qty-btn"
+                      >
+                        −
+                      </button>
+                      <span className="text-base font-semibold text-foreground w-4 text-center">
+                        {qty}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          addItem({
+                            product_id: product.product_id,
+                            variation_id: product.variation_id,
+                          });
+                        }}
+                        className="qty-btn bg-primary text-white border-primary"
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Variation Selection Modal */}
       {/* Variation Selection Modal */}
       {selectedProduct && (
         <VariationSelectionModal
@@ -251,7 +326,30 @@ export default function ProductGrid({ category, subcategory, sort }: ProductGrid
             setShowVariationModal(false);
             setSelectedProduct(null);
           }}
-          product={selectedProduct}
+          product={{
+            id: selectedProduct.id,
+            name: selectedProduct.name,
+            image: selectedProduct.image,
+            variations: selectedProduct.variations.map((variation) => ({
+              id: variation.id,
+              label: variation.name || variation.weight || "Default Variant",
+              sku: variation.sku || "",
+              unit: variation.unit || null,
+              weight: variation.weight || null,
+              price: variation.price || 0,
+              discount_price: variation.discount_price || null,
+              discount_percent:
+                variation.discount_price &&
+                variation.price > variation.discount_price
+                  ? Math.round(
+                      ((variation.price - variation.discount_price) /
+                        variation.price) *
+                        100,
+                    )
+                  : 0,
+              stock: variation.stock || 0,
+            })),
+          }}
         />
       )}
     </>

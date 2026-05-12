@@ -10,7 +10,14 @@ const getAllProducts = async (req, res) => {
   if (status !== '') where.status = status;
   if (category_id !== '') where.category_id = category_id;
   if (subcategory_id !== '') where.subcategory_id = subcategory_id;
-  // Remove user_id filter - admins should see all products
+
+  // Check if user is admin
+  const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+  
+  // If not admin, filter by user_id
+  if (!isAdmin) {
+    where.user_id = req.user.id;
+  }
 
   try {
     const { count, rows } = await Product.findAndCountAll({
@@ -42,7 +49,16 @@ const getAllProducts = async (req, res) => {
 const getProductById = async (req, res) => {
   const { id } = req.params;
   try {
-    const product = await Product.findByPk(id, {
+    const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+    const whereClause = { id };
+    
+    // If not admin, only allow viewing own products
+    if (!isAdmin) {
+      whereClause.user_id = req.user.id;
+    }
+    
+    const product = await Product.findOne({
+      where: whereClause,
       include: [
         { model: Category, as: "category", attributes: ["id", "name"] },
         { model: SubCategory, as: "subCategory", attributes: ["id", "name"] },
@@ -50,7 +66,7 @@ const getProductById = async (req, res) => {
         { model: ProductImage, as: "images" },
       ],
     });
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (!product) return res.status(404).json({ message: "Product not found or access denied" });
     return res.status(200).json({ product });
   } catch (err) {
     console.error("getProductById error:", err);
@@ -113,6 +129,9 @@ const createProduct = async (req, res) => {
         sku: v.sku,
         unit: v.unit,
         weight: v.weight,
+        label: v.label || v.variation_name,
+        price: v.price || 0,
+        discount_price: v.discount_price || 0,
         status: 1,
       });
     }
@@ -158,8 +177,16 @@ const updateProduct = async (req, res) => {
   const files = req.files?.product_images || [];
 
   try {
-    const product = await Product.findByPk(id);
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+    const whereClause = { id };
+    
+    // If not admin, only allow updating own products
+    if (!isAdmin) {
+      whereClause.user_id = req.user.id;
+    }
+    
+    const product = await Product.findOne({ where: whereClause });
+    if (!product) return res.status(404).json({ message: "Product not found or access denied" });
 
     // 1. Update product info
     await product.update({
@@ -187,6 +214,9 @@ const updateProduct = async (req, res) => {
           sku: v.sku,
           unit: v.unit,
           weight: v.weight,
+          label: v.label || v.variation_name,
+          price: v.price || 0,
+          discount_price: v.discount_price || 0,
           status: 1,
         });
       }
@@ -251,8 +281,16 @@ const toggleProductStatus = async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   try {
-    const product = await Product.findByPk(id);
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+    const whereClause = { id };
+    
+    // If not admin, only allow updating own products
+    if (!isAdmin) {
+      whereClause.user_id = req.user.id;
+    }
+    
+    const product = await Product.findOne({ where: whereClause });
+    if (!product) return res.status(404).json({ message: "Product not found or access denied" });
     await product.update({ status });
     return res.status(200).json({ message: "Status updated", status });
   } catch (err) {
@@ -264,8 +302,16 @@ const toggleProductStatus = async (req, res) => {
 const deleteProduct = async (req, res) => {
   const { id } = req.params;
   try {
-    const product = await Product.findByPk(id);
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+    const whereClause = { id };
+    
+    // If not admin, only allow deleting own products
+    if (!isAdmin) {
+      whereClause.user_id = req.user.id;
+    }
+    
+    const product = await Product.findOne({ where: whereClause });
+    if (!product) return res.status(404).json({ message: "Product not found or access denied" });
     await product.update({ status: 0 });
     return res.status(200).json({ message: "Product deleted successfully" });
   } catch (err) {

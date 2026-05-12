@@ -13,7 +13,14 @@ const getAllCategories = async (req, res) => {
   if (status !== '') {
     where.status = status;
   }
-  // Remove user_id filter - admins should see all categories
+
+  // Check if user is admin
+  const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+  
+  // If not admin, filter by user_id
+  if (!isAdmin) {
+    where.user_id = req.user.id;
+  }
 
   try {
     const { count, rows } = await Category.findAndCountAll({
@@ -72,7 +79,15 @@ const updateCategory = async (req, res) => {
   const { name, slug, description, meta_title, meta_description, status } = req.body;
   
   try {
-    const category = await Category.findOne({ where: { id, user_id: req.user.id } });
+    const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+    const whereClause = { id };
+    
+    // If not admin, only allow updating own categories
+    if (!isAdmin) {
+      whereClause.user_id = req.user.id;
+    }
+    
+    const category = await Category.findOne({ where: whereClause });
     if (!category) return res.status(404).json({ message: "Category not found or access denied" });
 
     const updateData = {
@@ -105,7 +120,15 @@ const toggleCategoryStatus = async (req, res) => {
   const { status } = req.body;
 
   try {
-    const category = await Category.findOne({ where: { id, user_id: req.user.id } });
+    const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+    const whereClause = { id };
+    
+    // If not admin, only allow updating own categories
+    if (!isAdmin) {
+      whereClause.user_id = req.user.id;
+    }
+    
+    const category = await Category.findOne({ where: whereClause });
     if (!category) return res.status(404).json({ message: "Category not found or access denied" });
 
     await category.update({ status });
@@ -120,7 +143,15 @@ const deleteCategory = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const category = await Category.findOne({ where: { id, user_id: req.user.id } });
+    const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+    const whereClause = { id };
+    
+    // If not admin, only allow deleting own categories
+    if (!isAdmin) {
+      whereClause.user_id = req.user.id;
+    }
+    
+    const category = await Category.findOne({ where: whereClause });
     if (!category) return res.status(404).json({ message: "Category not found or access denied" });
 
     // Recommendation: Soft delete via status = 0

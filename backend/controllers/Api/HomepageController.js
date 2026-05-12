@@ -24,6 +24,9 @@ const getHomepageData = async (req, res) => {
         return {
           id: v.id,
           label: v.variation_name || v.unit || "",
+          sku: v.sku || "",
+          unit: v.unit || "",
+          weight: v.weight || "",
           price: price,
           discount_price: discountPrice,
           discount_percent: discountPercent,
@@ -107,6 +110,7 @@ const getHomepageData = async (req, res) => {
         model: ProductVariation,
         as: "variations",
         required: false,
+        attributes: ["id", "product_id", "variation_name", "sku", "unit", "weight", "status"],
         include: [
           {
             model: WarehouseInventory,

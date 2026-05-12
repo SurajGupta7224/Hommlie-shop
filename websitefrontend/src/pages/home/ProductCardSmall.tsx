@@ -16,9 +16,15 @@ interface Product {
   rating: number;
   category?: string;
   badge: string | null;
+  fullProduct?: any;
 }
 
-export default function ProductCardSmall({ product }: { product: Product }) {
+interface ProductCardSmallProps {
+  product: Product;
+  onSelectVariation?: () => void;
+}
+
+export default function ProductCardSmall({ product, onSelectVariation }: ProductCardSmallProps) {
   const { addItem, removeItem, getItemQty } = useCart();
   const variationId = product.id; // Use product.id as variation ID for single-variation products
   const qty = getItemQty(typeof product.id === 'string' ? parseInt(product.id) : product.id, variationId as number);
@@ -31,6 +37,17 @@ export default function ProductCardSmall({ product }: { product: Product }) {
   const productPath = (product.category_slug && product.subcategory_slug && product.slug)
     ? `/${product.category_slug}/${product.subcategory_slug}/${product.slug}`
     : product.slug ? `/product/${product.slug}` : `/product/${product.id}`;
+
+  const handleAddClick = () => {
+    if (onSelectVariation) {
+      onSelectVariation();
+    } else {
+      addItem({ 
+        product_id: typeof product.id === 'string' ? parseInt(product.id) : product.id, 
+        variation_id: variationId as number
+      });
+    }
+  };
 
   return (
     <div className="product-card w-full flex flex-col group h-full">
@@ -81,7 +98,7 @@ export default function ProductCardSmall({ product }: { product: Product }) {
 
           {qty === 0 ? (
             <button
-              onClick={() => addItem({ product_id: typeof product.id === 'string' ? parseInt(product.id) : product.id, variation_id: variationId as number })}
+              onClick={handleAddClick}
               className="add-btn w-7 h-7 text-base font-semibold"
             >
               +

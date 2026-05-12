@@ -16,7 +16,14 @@ const getAllSubCategories = async (req, res) => {
   if (category_id !== '') {
     where.category_id = category_id;
   }
-  // Remove user_id filter - admins should see all subcategories
+
+  // Check if user is admin
+  const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+  
+  // If not admin, filter by user_id
+  if (!isAdmin) {
+    where.user_id = req.user.id;
+  }
 
   try {
     const { count, rows } = await SubCategory.findAndCountAll({
@@ -57,8 +64,15 @@ const createSubCategory = async (req, res) => {
     return res.status(400).json({ message: "Name and Slug are required" });
   }
 
-  // Verify the category exists and belongs to the user
-  const categoryExists = await Category.findOne({ where: { id: category_id, user_id: req.user.id } });
+  // Verify the category exists
+  const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+  const categoryWhereClause = { id: category_id };
+  
+  if (!isAdmin) {
+    categoryWhereClause.user_id = req.user.id;
+  }
+  
+  const categoryExists = await Category.findOne({ where: categoryWhereClause });
   if (!categoryExists) {
     return res.status(400).json({ message: "Selected category does not exist or access denied" });
   }
@@ -93,11 +107,23 @@ const updateSubCategory = async (req, res) => {
   const { category_id, name, slug, description, alt_tag, meta_title, meta_description, status } = req.body;
 
   try {
-    const subCategory = await SubCategory.findOne({ where: { id, user_id: req.user.id } });
+    const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+    const whereClause = { id };
+    
+    // If not admin, only allow updating own subcategories
+    if (!isAdmin) {
+      whereClause.user_id = req.user.id;
+    }
+    
+    const subCategory = await SubCategory.findOne({ where: whereClause });
     if (!subCategory) return res.status(404).json({ message: "Sub-category not found or access denied" });
 
     if (category_id) {
-      const categoryExists = await Category.findOne({ where: { id: category_id, user_id: req.user.id } });
+      const categoryWhereClause = { id: category_id };
+      if (!isAdmin) {
+        categoryWhereClause.user_id = req.user.id;
+      }
+      const categoryExists = await Category.findOne({ where: categoryWhereClause });
       if (!categoryExists) {
         return res.status(400).json({ message: "Selected category does not exist or access denied" });
       }
@@ -135,7 +161,15 @@ const toggleSubCategoryStatus = async (req, res) => {
   const { status } = req.body;
 
   try {
-    const subCategory = await SubCategory.findOne({ where: { id, user_id: req.user.id } });
+    const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+    const whereClause = { id };
+    
+    // If not admin, only allow updating own subcategories
+    if (!isAdmin) {
+      whereClause.user_id = req.user.id;
+    }
+    
+    const subCategory = await SubCategory.findOne({ where: whereClause });
     if (!subCategory) return res.status(404).json({ message: "Sub-category not found or access denied" });
 
     await subCategory.update({ status });
@@ -150,7 +184,15 @@ const deleteSubCategory = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const subCategory = await SubCategory.findOne({ where: { id, user_id: req.user.id } });
+    const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+    const whereClause = { id };
+    
+    // If not admin, only allow deleting own subcategories
+    if (!isAdmin) {
+      whereClause.user_id = req.user.id;
+    }
+    
+    const subCategory = await SubCategory.findOne({ where: whereClause });
     if (!subCategory) return res.status(404).json({ message: "Sub-category not found or access denied" });
 
     // Soft delete via status = 0

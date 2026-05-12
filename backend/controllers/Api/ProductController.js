@@ -17,26 +17,36 @@ const formatProductResponse = (p) => {
 
   // Format variations
   const variations = (plain.variations || []).map((v, index) => {
-    const inv = v.warehouseInventory && v.warehouseInventory.length > 0 ? v.warehouseInventory[0] : {};
-    const price = parseFloat(inv.price || 0);
-    const discountPrice = parseFloat(inv.discount_price || 0);
+    // Get price from ProductVariation or WarehouseInventory
+    let price = parseFloat(v.price || 0);
+    let discountPrice = parseFloat(v.discount_price || 0);
+    
+    // If price is not set in variation, try to get from warehouse inventory
+    if (price === 0 && v.warehouseInventory && v.warehouseInventory.length > 0) {
+      price = parseFloat(v.warehouseInventory[0].price || 0);
+      discountPrice = parseFloat(v.warehouseInventory[0].discount_price || 0);
+    }
+    
     const discountPercent = price > 0 ? Math.round(((price - discountPrice) / price) * 100) : 0;
 
-    // Create unique variation name by combining available fields
-    let variationName = v.variation_name || v.unit || `Variation ${index + 1}`;
+    // Use label from variation, or create unique variation name
+    let variationName = v.label || v.variation_name || v.unit || `Variation ${index + 1}`;
     
-    // If variation_name exists but we have multiple variations, add unit or weight to make it unique
-    if (v.variation_name && (v.unit || v.weight)) {
-      const suffix = v.unit || v.weight;
-      variationName = `${v.variation_name} ${suffix}`;
-    } else if (v.unit && v.weight) {
-      // If we have both unit and weight, combine them
-      variationName = `${v.unit} - ${v.weight}`;
-    } else if (v.unit) {
-      variationName = v.unit;
-    } else if (v.weight) {
-      variationName = v.weight;
+    // If no label exists, create unique variation name by combining available fields
+    if (!v.label) {
+      if (v.variation_name && (v.unit || v.weight)) {
+        const suffix = v.unit || v.weight;
+        variationName = `${v.variation_name} ${suffix}`;
+      } else if (v.unit && v.weight) {
+        variationName = `${v.unit} - ${v.weight}`;
+      } else if (v.unit) {
+        variationName = v.unit;
+      } else if (v.weight) {
+        variationName = v.weight;
+      }
     }
+
+    const stock = v.warehouseInventory && v.warehouseInventory.length > 0 ? v.warehouseInventory[0].stock : 0;
 
     return {
       id: v.id,
@@ -48,7 +58,7 @@ const formatProductResponse = (p) => {
       price: price,
       discount_price: discountPrice,
       discount_percent: discountPercent,
-      stock: inv.stock || 0,
+      stock: stock || 0,
       is_default: index === 0
     };
   });
