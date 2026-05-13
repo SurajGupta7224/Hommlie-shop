@@ -72,6 +72,7 @@ router.delete("/products/:id", verifyToken, requirePermission('product_managemen
 
 // User routes (protected)
 // Uses user_management permission
+router.get("/users/pending/count", verifyToken, requirePermission('user_management'), require('../controllers/Admin/userController').getPendingUserCount);
 router.get("/users/roles", verifyToken, requirePermission('user_management'), getRoles);
 router.get("/users", verifyToken, requirePermission('user_management'), getAllUsers);
 router.get("/users/:id", verifyToken, requirePermission('user_management'), require('../controllers/Admin/userController').getUserById);

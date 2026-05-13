@@ -36,6 +36,8 @@ export default function BestSellers({ products }: BestSellersProps) {
             rating: product.rating,
             badge: product.is_best_seller ? "Bestseller" : null,
             discount_percent: defaultVar.discount_percent,
+            variationId: defaultVar.id,
+            userId: product.user_id,
             fullProduct: product,
           };
 
@@ -64,6 +66,7 @@ export default function BestSellers({ products }: BestSellersProps) {
             id: selectedProduct.id,
             name: selectedProduct.name,
             image: selectedProduct.thumbnail,
+            user_id: selectedProduct.user_id,
             variations: selectedProduct.variations || [],
           }}
         />

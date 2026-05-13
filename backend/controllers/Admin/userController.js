@@ -27,7 +27,7 @@ const createUser = async (req, res) => {
     name, email, phone, password, role_id,
     country_id, state_id, city_id,
     trade_name, company_type, pan_number, aadhaar_number, gst_number,
-    status, profile_status
+    status, profile_status, commission_percent
   } = req.body;
 
   if (!name || !email || !password) {
@@ -66,6 +66,7 @@ const createUser = async (req, res) => {
       profile_photo, pan_card_file, aadhaar_card_file, gst_file,
       status: status || "active",
       profile_status: profile_status || "pending",
+      commission_percent: commission_percent || 0,
     });
 
     return res.status(201).json({
@@ -85,7 +86,7 @@ const updateUser = async (req, res) => {
     name, email, phone, password, role_id,
     country_id, state_id, city_id,
     trade_name, company_type, pan_number, aadhaar_number, gst_number,
-    status, profile_status
+    status, profile_status, commission_percent
   } = req.body;
 
   try {
@@ -111,7 +112,8 @@ const updateUser = async (req, res) => {
       company_type: company_type || null,
       pan_number: pan_number || null,
       aadhaar_number: aadhaar_number || null,
-      gst_number: gst_number || null
+      gst_number: gst_number || null,
+      commission_percent: commission_percent || 0
     };
 
     if (password && password.trim() !== '') {
@@ -205,4 +207,28 @@ const getUserById = async (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, getUserById, createUser, updateUser, updateUserStatus, deleteUser, getRoles };
+// GET /api/users/pending/count
+const getPendingUserCount = async (req, res) => {
+  try {
+    const count = await User.count({
+      where: { profile_status: 'pending' },
+      include: [
+        { 
+          model: Role, 
+          as: 'role', 
+          where: { 
+            role_name: { 
+              [require('sequelize').Op.or]: ['Vendor', 'Seller'] 
+            } 
+          } 
+        }
+      ]
+    });
+    return res.status(200).json({ count });
+  } catch (err) {
+    console.error("getPendingUserCount error:", err);
+    return res.status(500).json({ message: "Failed to fetch pending count" });
+  }
+};
+
+module.exports = { getAllUsers, getUserById, createUser, updateUser, updateUserStatus, deleteUser, getRoles, getPendingUserCount };

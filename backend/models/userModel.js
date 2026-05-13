@@ -30,6 +30,7 @@ User.init(
       type: DataTypes.ENUM("pending", "approved", "rejected"),
       defaultValue: "pending",
     },
+    commission_percent: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0 },
     last_login: { type: DataTypes.DATE, allowNull: true },
   },
   {

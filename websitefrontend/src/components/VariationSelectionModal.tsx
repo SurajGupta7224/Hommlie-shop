@@ -19,6 +19,7 @@ interface ModalProduct {
   id: number;
   name: string;
   image: string | null;
+  user_id?: number;
   variations: ModalVariation[];
 }
 
@@ -33,27 +34,32 @@ export default function VariationSelectionModal({
   onClose,
   product,
 }: VariationSelectionModalProps) {
-  const { addItem } = useCart();
+  const { addItem, removeItem, getItemQty } = useCart();
 
-  const handleAddToCart = async (variation: ModalVariation) => {
+  const handleAdd = async (variation: ModalVariation) => {
     if (variation.stock <= 0) {
       toast.error("This variation is out of stock");
       return;
     }
+    
+    // Safety check for user_id (seller ID)
+    const finalUserId = product.user_id || (product as any).userId;
 
     try {
       await addItem({
         product_id: product.id,
         variation_id: variation.id,
         quantity: 1,
+        user_id: finalUserId,
       });
-
-      toast.success("Added to cart");
-      onClose();
     } catch (error) {
       console.error("Failed to add to cart:", error);
       toast.error("Failed to add to cart");
     }
+  };
+
+  const handleRemove = (variation: ModalVariation) => {
+    removeItem(product.id, variation.id);
   };
 
   const formatPrice = (
@@ -67,12 +73,10 @@ export default function VariationSelectionModal({
           <span className="text-xl font-bold text-gray-900">
             ₹{discountPrice}
           </span>
-
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500 line-through">
               ₹{price}
             </span>
-
             <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">
               {discountPercent}% off
             </span>
@@ -80,7 +84,6 @@ export default function VariationSelectionModal({
         </div>
       );
     }
-
     return (
       <span className="text-xl font-bold text-gray-900">
         ₹{price}
@@ -117,12 +120,10 @@ export default function VariationSelectionModal({
                 className="w-full h-full object-cover"
               />
             </div>
-
             <div className="flex-1 min-w-0">
               <h2 className="text-xl font-semibold text-gray-900">
                 Select Variation
               </h2>
-
               <p className="text-sm text-gray-600 leading-relaxed break-words">
                 {product.name}
               </p>
@@ -134,6 +135,8 @@ export default function VariationSelectionModal({
         <div className="overflow-y-auto max-h-[65vh] p-4 space-y-4">
           {product.variations.map((variation) => {
             const isOutOfStock = variation.stock <= 0;
+            const qty = getItemQty(product.id, variation.id);
+            const isInCart = qty > 0;
 
             return (
               <div
@@ -141,6 +144,8 @@ export default function VariationSelectionModal({
                 className={`border rounded-xl p-4 transition-all ${
                   isOutOfStock
                     ? "border-gray-200 bg-gray-50 opacity-60"
+                    : isInCart
+                    ? "border-primary bg-primary/5 shadow-sm"
                     : "border-gray-200 hover:border-primary hover:shadow-md bg-white"
                 }`}
               >
@@ -151,6 +156,12 @@ export default function VariationSelectionModal({
                       <h3 className="font-semibold text-gray-900 text-lg">
                         {variation.label}
                       </h3>
+
+                      {isInCart && (
+                        <span className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          In Cart
+                        </span>
+                      )}
 
                       {variation.unit && (
                         <span className="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded">
@@ -195,12 +206,32 @@ export default function VariationSelectionModal({
                     )}
 
                     {!isOutOfStock && (
-                      <button
-                        onClick={() => handleAddToCart(variation)}
-                        className="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:opacity-90 transition"
-                      >
-                        + ADD
-                      </button>
+                      isInCart ? (
+                        <div className="flex items-center gap-2 bg-white border border-primary rounded-lg px-2 py-1">
+                          <button
+                            onClick={() => handleRemove(variation)}
+                            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-800 font-bold text-lg transition-colors"
+                          >
+                            −
+                          </button>
+                          <span className="text-base font-bold text-gray-900 w-5 text-center">
+                            {qty}
+                          </span>
+                          <button
+                            onClick={() => handleAdd(variation)}
+                            className="w-7 h-7 flex items-center justify-center rounded-md bg-primary text-white font-bold text-lg transition-colors hover:bg-primary/90"
+                          >
+                            +
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleAdd(variation)}
+                          className="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:opacity-90 transition"
+                        >
+                          + ADD
+                        </button>
+                      )
                     )}
                   </div>
                 </div>

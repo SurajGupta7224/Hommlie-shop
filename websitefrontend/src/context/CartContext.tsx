@@ -24,6 +24,7 @@ export interface CartItem {
   quantity: number;
   price: number;
   discount_price: number | null;
+  delivery_charge: number;
   total: number;
 }
 
@@ -31,6 +32,7 @@ interface AddableItem {
   product_id: number;
   variation_id: number;
   quantity?: number;
+  user_id?: number;
 }
 
 interface CartContextType {
@@ -45,6 +47,8 @@ interface CartContextType {
   getTotalItems: () => number;
   getTotalPrice: () => number;
   getSubtotal: () => number;
+  getDeliveryFee: () => number;
+  getFinalTotal: () => number;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -99,7 +103,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         session_id: sessionId,
         product_id: item.product_id,
         variation_id: item.variation_id,
-        quantity: item.quantity || 1
+        quantity: item.quantity || 1,
+        user_id: item.user_id
       }, { headers });
       
       if (response.data.status === 1) {
@@ -118,7 +123,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const headers = getAuthHeaders();
       
+      const sessionId = getSessionId();
       const response = await api.post('/cart/update', {
+        session_id: sessionId,
         cart_item_id: cartItemId,
         quantity
       }, { headers });
@@ -146,7 +153,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return;
       }
       
+      const sessionId = getSessionId();
       const response = await api.post('/cart/remove', {
+        session_id: sessionId,
         cart_item_id: item.id
       }, { headers });
       
@@ -202,6 +211,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return items.reduce((acc, i) => acc + i.total, 0);
   }, [items]);
 
+  const getDeliveryFee = useCallback(() => {
+    return items.reduce((acc, i) => acc + (parseFloat(i.delivery_charge as any) * i.quantity), 0);
+  }, [items]);
+
+  const getFinalTotal = useCallback(() => {
+    const subtotal = getSubtotal();
+    const delivery = getDeliveryFee();
+    return subtotal + delivery;
+  }, [getSubtotal, getDeliveryFee]);
+
   return (
     <CartContext.Provider value={{ 
       items, 
@@ -214,7 +233,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       getItemQty, 
       getTotalItems, 
       getTotalPrice,
-      getSubtotal
+      getSubtotal,
+      getDeliveryFee,
+      getFinalTotal
     }}>
       {children}
     </CartContext.Provider>

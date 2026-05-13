@@ -94,6 +94,7 @@ export default function ProductGrid({
               badge: product.is_best_seller ? "Bestseller" : null,
               slug: product.slug,
               description: product.description,
+              user_id: product.user_id,
               variations: product.variations || [],
             }),
           );
@@ -255,6 +256,7 @@ export default function ProductGrid({
                           addItem({
                             product_id: product.product_id,
                             variation_id: product.variation_id,
+                            user_id: product.user_id
                           });
                         }
                       }}
@@ -264,50 +266,59 @@ export default function ProductGrid({
                     </button>
                   ) : (
                     <div
-                      className="flex items-center gap-1.5"
+                      className="flex flex-col items-end gap-1"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          const cartItem = items.find(
-                            (item) =>
-                              item.product.id === product.product_id &&
-                              item.variation.id === product.variation_id,
-                          );
-                          if (cartItem) {
-                            if (cartItem.quantity > 1) {
-                              updateQuantity(
-                                cartItem.id,
-                                cartItem.quantity - 1,
-                              );
-                            } else {
-                              removeItem(
-                                product.product_id,
-                                product.variation_id,
-                              );
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const cartItem = items.find(
+                              (item) =>
+                                item.product.id === product.product_id &&
+                                item.variation.id === product.variation_id,
+                            );
+                            if (cartItem) {
+                              if (cartItem.quantity > 1) {
+                                updateQuantity(
+                                  cartItem.id,
+                                  cartItem.quantity - 1,
+                                );
+                              } else {
+                                removeItem(
+                                  product.product_id,
+                                  product.variation_id,
+                                );
+                              }
                             }
-                          }
-                        }}
-                        className="qty-btn"
-                      >
-                        −
-                      </button>
-                      <span className="text-base font-semibold text-foreground w-4 text-center">
-                        {qty}
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          addItem({
-                            product_id: product.product_id,
-                            variation_id: product.variation_id,
-                          });
-                        }}
-                        className="qty-btn bg-primary text-white border-primary"
-                      >
-                        +
-                      </button>
+                          }}
+                          className="qty-btn"
+                        >
+                          −
+                        </button>
+                        <span className="text-base font-semibold text-foreground w-4 text-center">
+                          {qty}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (product.variations && product.variations.length > 1) {
+                              setSelectedProduct(product);
+                              setShowVariationModal(true);
+                            } else {
+                              addItem({
+                                product_id: product.product_id,
+                                variation_id: product.variation_id,
+                                user_id: product.user_id
+                              });
+                            }
+                          }}
+                          className="qty-btn bg-primary text-white border-primary"
+                        >
+                          +
+                        </button>
+                      </div>
+                      {/* "Add Variant" button removed — + now handles it */}
                     </div>
                   )}
                 </div>
@@ -330,6 +341,7 @@ export default function ProductGrid({
             id: selectedProduct.id,
             name: selectedProduct.name,
             image: selectedProduct.image,
+            user_id: selectedProduct.user_id,
             variations: selectedProduct.variations.map((variation) => ({
               id: variation.id,
               label: variation.name || variation.weight || "Default Variant",

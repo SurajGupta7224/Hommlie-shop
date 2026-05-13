@@ -102,7 +102,7 @@ const Users = () => {
     name: '', email: '', phone: '', password: '', role_id: 1,
     pincode: '', country_id: '', state_id: '', city_id: '',
     trade_name: '', company_type: 'Individual', pan_number: '', aadhaar_number: '', gst_number: '',
-    status: 'active', profile_status: 'pending'
+    status: 'active', profile_status: 'pending', commission_percent: 0
   });
   
   const [fileData, setFileData] = useState({
@@ -120,6 +120,7 @@ const Users = () => {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null, name: '' });
   const [deleting, setDeleting] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
 
   useEffect(() => {
     fetchUsers();
@@ -241,7 +242,7 @@ const Users = () => {
       name: '', email: '', phone: '', password: '', role_id: roles[0]?.id || 1,
       pincode: '', country_id: '', state_id: '', city_id: '',
       trade_name: '', company_type: 'Individual', pan_number: '', aadhaar_number: '', gst_number: '',
-      status: 'active', profile_status: 'pending'
+      status: 'active', profile_status: 'pending', commission_percent: 0
     });
     setFileData({ profile_photo: null, pan_card_file: null, aadhaar_card_file: null, gst_file: null });
     setExistingFiles({ profile_photo: null, pan_card_file: null, aadhaar_card_file: null, gst_file: null });
@@ -260,6 +261,7 @@ const Users = () => {
       trade_name: user.trade_name || '', company_type: cType, 
       pan_number: user.pan_number || '', aadhaar_number: user.aadhaar_number || '', gst_number: user.gst_number || '',
       status: user.status || 'active', profile_status: user.profile_status || 'pending',
+      commission_percent: user.commission_percent || 0,
       password: '' // Don't populate password
     });
     setFileData({ profile_photo: null, pan_card_file: null, aadhaar_card_file: null, gst_file: null });
@@ -342,6 +344,11 @@ const Users = () => {
   };
 
 
+  const filteredUsers = users.filter(u => {
+    if (filter === 'all') return true;
+    return u.profile_status === filter;
+  });
+
   return (
     <div className="w-full">
       {isFormOpen ? (
@@ -366,6 +373,10 @@ const Users = () => {
                   options={roles.map(r => ({ value: r.id, label: r.role_name }))} 
                 />
                 <InputField label="Password" name="password" type="password" value={formData.password} onChange={handleInputChange} required={!isEditMode} placeholder={isEditMode ? "Leave blank to keep" : "Password"} />
+                
+                {roles.find(r => r.id == formData.role_id)?.role_name?.toLowerCase().includes('vendor') || roles.find(r => r.id == formData.role_id)?.role_name?.toLowerCase().includes('seller') ? (
+                  <InputField label="Vendor Commission (%)" name="commission_percent" type="number" value={formData.commission_percent} onChange={handleInputChange} placeholder="Commission %" />
+                ) : null}
 
                 <div className="relative">
                   <InputField label="Pincode" name="pincode" value={formData.pincode || ''} onChange={handlePincodeChange} placeholder="Enter 6-digit Pincode" />
@@ -455,6 +466,32 @@ const Users = () => {
             </button>
           </div>
 
+          <div className="flex items-center space-x-2 mb-4 bg-white p-2 rounded-lg border border-slate-200 w-fit">
+            <button 
+              onClick={() => setFilter('all')}
+              className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${filter === 'all' ? 'bg-[#7c3aed] text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              All Users
+            </button>
+            <button 
+              onClick={() => setFilter('pending')}
+              className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center ${filter === 'pending' ? 'bg-amber-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              Pending Approval
+              {users.filter(u => u.profile_status === 'pending').length > 0 && (
+                <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] ${filter === 'pending' ? 'bg-white text-amber-500' : 'bg-amber-100 text-amber-600'}`}>
+                  {users.filter(u => u.profile_status === 'pending').length}
+                </span>
+              )}
+            </button>
+            <button 
+              onClick={() => setFilter('approved')}
+              className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${filter === 'approved' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              Approved
+            </button>
+          </div>
+
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             {loading ? (
               <div className="p-12 text-center text-slate-400 flex flex-col items-center">
@@ -474,8 +511,8 @@ const Users = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {users.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((u) => (
-                      <tr key={u.id} className="hover:bg-slate-50 transition-colors group">
+                    {filteredUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((u) => (
+                      <tr key={u.id} className={`hover:bg-slate-50 transition-colors group ${u.profile_status === 'pending' ? 'bg-amber-50/30' : ''}`}>
                         <td className="p-4">
                           <div className="flex items-center space-x-3">
                             {u.profile_photo ? (

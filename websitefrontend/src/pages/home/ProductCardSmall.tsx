@@ -16,6 +16,8 @@ interface Product {
   rating: number;
   category?: string;
   badge: string | null;
+  variationId?: number;
+  userId?: number;
   fullProduct?: any;
 }
 
@@ -26,8 +28,9 @@ interface ProductCardSmallProps {
 
 export default function ProductCardSmall({ product, onSelectVariation }: ProductCardSmallProps) {
   const { addItem, removeItem, getItemQty } = useCart();
-  const variationId = product.id; // Use product.id as variation ID for single-variation products
-  const qty = getItemQty(typeof product.id === 'string' ? parseInt(product.id) : product.id, variationId as number);
+  const variationId = product.variationId || (product.fullProduct?.variations?.[0]?.id);
+  const productId = typeof product.id === 'string' ? parseInt(product.id) : product.id;
+  const qty = getItemQty(productId, variationId as number);
   const discount = product.originalPrice > product.price
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
@@ -38,13 +41,16 @@ export default function ProductCardSmall({ product, onSelectVariation }: Product
     ? `/${product.category_slug}/${product.subcategory_slug}/${product.slug}`
     : product.slug ? `/product/${product.slug}` : `/product/${product.id}`;
 
+  const hasMultipleVariations = (product.fullProduct?.variations?.length ?? 0) > 1;
+
   const handleAddClick = () => {
     if (onSelectVariation) {
       onSelectVariation();
     } else {
       addItem({ 
-        product_id: typeof product.id === 'string' ? parseInt(product.id) : product.id, 
-        variation_id: variationId as number
+        product_id: productId, 
+        variation_id: variationId as number,
+        user_id: product.user_id || product.userId
       });
     }
   };
@@ -105,9 +111,18 @@ export default function ProductCardSmall({ product, onSelectVariation }: Product
             </button>
           ) : (
             <div className="flex items-center gap-1">
-              <button onClick={() => removeItem(typeof product.id === 'string' ? parseInt(product.id) : product.id, variationId as number)} className="qty-btn">−</button>
+              <button onClick={() => removeItem(productId, variationId as number)} className="qty-btn">−</button>
               <span className="text-xs font-semibold text-foreground w-4 text-center">{qty}</span>
-              <button onClick={() => addItem({ product_id: typeof product.id === 'string' ? parseInt(product.id) : product.id, variation_id: variationId as number })} className="qty-btn bg-primary text-white border-primary hover:bg-primary/80 font-semibold">+</button>
+              <button
+                onClick={() => {
+                  if (hasMultipleVariations && onSelectVariation) {
+                    onSelectVariation(); // Re-open modal to pick another variant
+                  } else {
+                    addItem({ product_id: productId, variation_id: variationId as number, user_id: product.userId });
+                  }
+                }}
+                className="qty-btn bg-primary text-white border-primary hover:bg-primary/80 font-semibold"
+              >+</button>
             </div>
           )}
         </div>

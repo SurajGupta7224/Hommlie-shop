@@ -203,7 +203,8 @@ export default function ProductDetailClient() {
                     } else {
                       addItem({ 
                         product_id: product.id, 
-                        variation_id: defaultVar.id
+                        variation_id: defaultVar.id,
+                        user_id: product.user_id
                       });
                     }
                   }}
@@ -213,19 +214,29 @@ export default function ProductDetailClient() {
                 </button>
               ) : (
                 <div className="flex items-center gap-4 bg-white border border-border p-1.5 rounded-xl">
-                  <button onClick={() => {
-                    removeItem(product.id, defaultVar.id);
-                  }} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted text-foreground transition-colors">
-                    <Icon name="MinusIcon" size={18} />
-                  </button>
-                  <span className="text-lg font-semibold text-foreground w-6 text-center">{qty}</span>
-                  <button onClick={() => addItem({ 
-                    product_id: product.id, 
-                    variation_id: defaultVar.id
-                  })} className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-white transition-colors">
-                    <Icon name="PlusIcon" size={18} />
-                  </button>
-                </div>
+                    <button onClick={() => {
+                      removeItem(product.id, defaultVar.id);
+                    }} className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted text-foreground transition-colors">
+                      <Icon name="MinusIcon" size={18} />
+                    </button>
+                    <span className="text-lg font-semibold text-foreground w-6 text-center">{qty}</span>
+                    <button
+                      onClick={() => {
+                        if (product.variations && product.variations.length > 1) {
+                          setShowVariationModal(true);
+                        } else {
+                          addItem({ 
+                            product_id: product.id, 
+                            variation_id: defaultVar.id,
+                            user_id: product.user_id
+                          });
+                        }
+                      }}
+                      className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-white transition-colors"
+                    >
+                      <Icon name="PlusIcon" size={18} />
+                    </button>
+                  </div>
               )}
             </div>
 
@@ -258,7 +269,7 @@ export default function ProductDetailClient() {
         </div>
 
         {/* Nutritional Info Section */}
-        <section className="mt-12 pt-12 border-t border-border">
+        {/* <section className="mt-12 pt-12 border-t border-border">
           <h3 className="text-2xl font-semibold text-foreground mb-6">Nutritional Information</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
@@ -274,7 +285,7 @@ export default function ProductDetailClient() {
             ))}
           </div>
           <p className="mt-4 text-[10px] text-muted-foreground italic">* Nutritional values are approximate per 100g serving.</p>
-        </section>
+        </section> */}
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
@@ -335,6 +346,7 @@ export default function ProductDetailClient() {
             id: product.id,
             name: product.name,
             image: product.thumbnail,
+            user_id: product.user_id,
             variations: product.variations || []
           }}
         />

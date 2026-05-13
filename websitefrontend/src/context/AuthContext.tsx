@@ -11,6 +11,8 @@ interface AuthContextType {
   isLoggedIn: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
+  isLoginModalOpen: boolean;
+  setIsLoginModalOpen: (open: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,6 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
     // Check localStorage on mount
@@ -38,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
     setIsLoggedIn(true);
+    setIsLoginModalOpen(false); // Close modal on success
   };
 
   const logout = () => {
@@ -48,7 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoggedIn, 
+      login, 
+      logout,
+      isLoginModalOpen,
+      setIsLoginModalOpen
+    }}>
       {children}
     </AuthContext.Provider>
   );

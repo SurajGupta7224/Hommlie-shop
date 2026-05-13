@@ -66,14 +66,23 @@ const formatCartItem = async (item) => {
     },
     price: price,
     discount_price: discountPrice,
+    delivery_charge: inventory ? parseFloat(inventory.delivery_charge || 0) : 0,
     total: discountPrice ? discountPrice * item.quantity : price * item.quantity
   };
 };
 
 // Add to Cart
 exports.addToCart = async (req, res) => {
-  const { session_id, product_id, variation_id, quantity = 1 } = req.body;
-  const customerId = req.headers['x-customer-id'] || null;
+  const { session_id, product_id, variation_id, quantity = 1, user_id } = req.body;
+  
+  // Identify the customer
+  let customerId = req.headers['x-customer-id'] || null;
+  if (!customerId && req.user && req.userType === 'customer') {
+    customerId = req.user.id;
+  }
+  
+  // Identify the seller (user_id from product data)
+  const sellerId = user_id || null;
 
   if (!product_id || !variation_id) {
     return res.status(200).json({
@@ -107,6 +116,9 @@ exports.addToCart = async (req, res) => {
       });
     }
 
+    // Use product.user_id as the source of truth for the seller
+    const finalSellerId = product.user_id || sellerId;
+
     // Build where clause for finding existing cart item
     const whereClause = { product_id, variation_id };
     if (customerId) {
@@ -134,6 +146,10 @@ exports.addToCart = async (req, res) => {
         });
       }
       cartItem.quantity = newQuantity;
+      cartItem.user_id = finalSellerId; // Ensure seller ID is updated/set
+      if (customerId) {
+        cartItem.customer_id = customerId;
+      }
       await cartItem.save();
     } else {
       // Create new cart item
@@ -141,14 +157,13 @@ exports.addToCart = async (req, res) => {
         product_id,
         variation_id,
         quantity: parseInt(quantity),
-        user_id: null // Set to null for guest users
+        user_id: finalSellerId,
+        customer_id: customerId,
+        session_id: session_id
       };
 
-      if (customerId) {
-        createData.customer_id = customerId;
-        createData.session_id = session_id || `cust_${customerId}`;
-      } else {
-        createData.session_id = session_id;
+      if (customerId && !session_id) {
+        createData.session_id = `cust_${customerId}`;
       }
 
       cartItem = await Cart.create(createData);
@@ -207,6 +222,7 @@ exports.getCart = async (req, res) => {
     });
 
     let subtotal = 0;
+    let totalDeliveryCharge = 0;
     let totalItems = 0;
     const formattedItems = [];
 
@@ -214,6 +230,7 @@ exports.getCart = async (req, res) => {
       const formatted = await formatCartItem(item);
       formattedItems.push(formatted);
       subtotal += formatted.total;
+      totalDeliveryCharge += formatted.delivery_charge;
       totalItems += item.quantity;
     }
 
@@ -225,9 +242,9 @@ exports.getCart = async (req, res) => {
         summary: {
           total_items: totalItems,
           subtotal: subtotal.toFixed(2),
-          delivery_charge: 0,
+          delivery_charge: totalDeliveryCharge.toFixed(2),
           tax: 0,
-          total: subtotal.toFixed(2)
+          total: (subtotal + totalDeliveryCharge).toFixed(2)
         }
       }
     });
@@ -244,7 +261,8 @@ exports.getCart = async (req, res) => {
 
 // Update Cart Quantity
 exports.updateQuantity = async (req, res) => {
-  const { cart_item_id, quantity } = req.body;
+  const { cart_item_id, quantity, session_id } = req.body;
+  const customerId = req.headers['x-customer-id'] || null;
 
   if (!cart_item_id || !quantity || quantity < 1) {
     return res.status(200).json({
@@ -263,6 +281,19 @@ exports.updateQuantity = async (req, res) => {
 
     if (!cartItem) {
       return res.status(200).json({ status: 0, message: "Cart item not found" });
+    }
+
+    // Ownership check
+    if (customerId) {
+      if (cartItem.customer_id != customerId) {
+        return res.status(200).json({ status: 0, message: "Unauthorized access to cart item" });
+      }
+    } else if (session_id) {
+      if (cartItem.session_id !== session_id) {
+        return res.status(200).json({ status: 0, message: "Unauthorized access to cart item" });
+      }
+    } else {
+      return res.status(200).json({ status: 0, message: "Authentication required" });
     }
 
     // Check stock
@@ -304,7 +335,8 @@ exports.updateQuantity = async (req, res) => {
 
 // Remove from Cart
 exports.removeFromCart = async (req, res) => {
-  const { cart_item_id } = req.body;
+  const { cart_item_id, session_id } = req.body;
+  const customerId = req.headers['x-customer-id'] || null;
 
   if (!cart_item_id) {
     return res.status(200).json({
@@ -317,6 +349,19 @@ exports.removeFromCart = async (req, res) => {
     const cartItem = await Cart.findByPk(cart_item_id);
     if (!cartItem) {
       return res.status(200).json({ status: 0, message: "Cart item not found" });
+    }
+
+    // Ownership check
+    if (customerId) {
+      if (cartItem.customer_id != customerId) {
+        return res.status(200).json({ status: 0, message: "Unauthorized access to cart item" });
+      }
+    } else if (session_id) {
+      if (cartItem.session_id !== session_id) {
+        return res.status(200).json({ status: 0, message: "Unauthorized access to cart item" });
+      }
+    } else {
+      return res.status(200).json({ status: 0, message: "Authentication required" });
     }
 
     await cartItem.destroy();

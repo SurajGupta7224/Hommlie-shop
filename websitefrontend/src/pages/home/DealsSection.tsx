@@ -73,7 +73,7 @@ export default function DealsSection({ products }: DealsSectionProps) {
                           setSelectedProduct(deal);
                           setShowVariationModal(true);
                         } else {
-                          addItem({ product_id: deal.id, variation_id: defaultVar.id });
+                    addItem({ product_id: deal.id, variation_id: defaultVar.id, user_id: deal.user_id });
                         }
                       }
                     }}
@@ -85,7 +85,12 @@ export default function DealsSection({ products }: DealsSectionProps) {
                   <div className="flex flex-col items-center gap-1">
                     <button onClick={(e) => {
                       e.preventDefault();
-                      addItem({ product_id: deal.id, variation_id: defaultVar.id });
+                      if (deal.variations && deal.variations.length > 1) {
+                        setSelectedProduct(deal);
+                        setShowVariationModal(true);
+                      } else {
+                        addItem({ product_id: deal.id, variation_id: defaultVar.id, user_id: deal.user_id });
+                      }
                     }} className="qty-btn bg-primary text-white border-primary">+</button>
                     <span className="text-xs font-bold text-foreground">{qty}</span>
                     <button onClick={(e) => {
@@ -112,6 +117,7 @@ export default function DealsSection({ products }: DealsSectionProps) {
             id: selectedProduct.id,
             name: selectedProduct.name,
             image: selectedProduct.thumbnail,
+            user_id: selectedProduct.user_id,
             variations: selectedProduct.variations || []
           }}
         />

@@ -94,7 +94,8 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '', password: '',
     pincode: '', country_id: '', state_id: '', city_id: '',
-    trade_name: '', company_type: '', pan_number: '', aadhaar_number: '', gst_number: ''
+    trade_name: '', company_type: '', pan_number: '', aadhaar_number: '', gst_number: '',
+    commission_percent: 0
   });
 
   const [fileData, setFileData] = useState({
@@ -133,7 +134,8 @@ const Profile = () => {
           company_type: user.company_type || '',
           pan_number: user.pan_number || '',
           aadhaar_number: user.aadhaar_number || '',
-          gst_number: user.gst_number || ''
+          gst_number: user.gst_number || '',
+          commission_percent: user.commission_percent || 0
         });
       } else {
         toast.error('User data not found');
@@ -247,7 +249,8 @@ const Profile = () => {
         ...currentLocalUser, 
         name: res.data.user.name, 
         email: res.data.user.email,
-        profile_photo: res.data.user.profile_photo 
+        profile_photo: res.data.user.profile_photo,
+        profile_status: res.data.user.profile_status
       };
       localStorage.setItem('user', JSON.stringify(updatedLocalUser));
       
@@ -384,6 +387,18 @@ const Profile = () => {
                 <InputField label="PAN Number" name="pan_number" value={formData.pan_number} onChange={handleInputChange} icon={CreditCard} />
                 <InputField label="Aadhaar Number" name="aadhaar_number" value={formData.aadhaar_number} onChange={handleInputChange} icon={CreditCard} />
                 <InputField label="GST Number" name="gst_number" value={formData.gst_number} onChange={handleInputChange} icon={CreditCard} />
+                
+                {['vendor', 'seller', 'admin'].some(r => userData.role?.role_name?.toLowerCase().includes(r)) ? (
+                  <div className="mb-5">
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                      Commission Rate (%)
+                    </label>
+                    <div className="bg-purple-50 border border-purple-100 rounded-xl px-4 py-2.5 text-sm font-bold text-purple-700 flex items-center justify-between shadow-sm">
+                      <span>Standard Platform Fee</span>
+                      <span className="text-lg">{formData.commission_percent}%</span>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
 

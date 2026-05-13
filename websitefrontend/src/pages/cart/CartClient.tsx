@@ -1,17 +1,29 @@
 
 
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Icon from '@/components/ui/AppIcon';
 import BottomNav from '@/components/BottomNav';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import CartItemRow from './CartItemRow';
 import PriceSummary from './PriceSummary';
 
 export default function CartClient() {
-  const { items, getTotalItems, getTotalPrice, loading } = useCart();
+  const { items, getTotalItems, getFinalTotal, loading } = useCart();
+  const { isLoggedIn, setIsLoginModalOpen } = useAuth();
+  const navigate = useNavigate();
   const isEmpty = items?.length === 0;
+
+  const handleCheckout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isLoggedIn) {
+      setIsLoginModalOpen(true);
+    } else {
+      navigate('/checkout');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
@@ -88,12 +100,12 @@ export default function CartClient() {
                 <div className="bg-primary rounded-2xl p-4 shadow-primary flex items-center justify-between mt-4">
                   <div>
                     <p className="text-white/80 text-xs font-medium">Total Amount</p>
-                    <p className="text-white text-xl font-semibold">₹{getTotalPrice() + (getTotalPrice() < 199 ? 30 : 0)}</p>
+                    <p className="text-white text-xl font-semibold">₹{getFinalTotal()}</p>
                   </div>
-                  <Link to="/checkout" className="bg-white text-primary font-semibold text-base px-6 py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2">
+                  <button onClick={handleCheckout} className="bg-white text-primary font-semibold text-base px-6 py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2">
                     Checkout
                     <Icon name="ArrowRightIcon" size={16} className="text-primary" />
-                  </Link>
+                  </button>
                 </div>
               </div>
             </div>
@@ -107,12 +119,12 @@ export default function CartClient() {
           <div className="bg-primary rounded-2xl p-4 shadow-primary flex items-center justify-between">
             <div>
               <p className="text-white/80 text-xs font-medium">Total Amount</p>
-              <p className="text-white text-lg font-bold">₹{getTotalPrice() + (getTotalPrice() < 199 ? 30 : 0)}</p>
+              <p className="text-white text-lg font-bold">₹{getFinalTotal()}</p>
             </div>
-            <Link to="/checkout" className="bg-white text-primary font-semibold text-base px-6 py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2">
+            <button onClick={handleCheckout} className="bg-white text-primary font-semibold text-base px-6 py-2.5 rounded-xl hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2">
               Checkout
               <Icon name="ArrowRightIcon" size={16} className="text-primary" />
-            </Link>
+            </button>
           </div>
         </div>
       )}

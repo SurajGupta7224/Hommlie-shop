@@ -160,7 +160,8 @@ export default function HomePageClient() {
                         } else {
                           addItem({ 
                             product_id: item.id, 
-                            variation_id: defaultVar.id
+                            variation_id: defaultVar.id,
+                            user_id: item.user_id
                           });
                         }
                       }}
@@ -245,6 +246,7 @@ export default function HomePageClient() {
             id: selectedProduct.id,
             name: selectedProduct.name,
             image: selectedProduct.thumbnail,
+            user_id: selectedProduct.user_id,
             variations: selectedProduct.variations || []
           }}
         />

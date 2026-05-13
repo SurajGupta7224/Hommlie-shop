@@ -4,23 +4,26 @@ import { useCart } from '@/context/CartContext';
 import Icon from '@/components/ui/AppIcon';
 
 export default function PriceSummary() {
-  const { getSubtotal, items } = useCart();
+  const { getSubtotal, getDeliveryFee, getFinalTotal, items } = useCart();
   const subtotal = getSubtotal();
-  const deliveryFee = subtotal < 199 ? 30 : 0;
-  const discount = Math.round(subtotal * 0.05);
-  const total = subtotal + deliveryFee - discount;
+  const deliveryFee = getDeliveryFee();
+  const total = getFinalTotal();
 
   const totalOriginal = items?.reduce((acc, item) => {
     return acc + (item?.price * item?.quantity);
   }, 0);
 
+  const savings = totalOriginal - subtotal;
+
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-card mb-4">
       {/* Savings Banner */}
-      <div className="bg-success/10 px-4 py-2.5 flex items-center gap-2">
-        <Icon name="TagIcon" size={14} className="text-success" variant="solid" />
-        <span className="text-xs font-semibold text-success">You are saving ₹{discount + (totalOriginal - subtotal > 0 ? totalOriginal - subtotal : 0)} on this order!</span>
-      </div>
+      {savings > 0 && (
+        <div className="bg-success/10 px-4 py-2.5 flex items-center gap-2">
+          <Icon name="TagIcon" size={14} className="text-success" variant="solid" />
+          <span className="text-xs font-semibold text-success">You are saving ₹{savings} on this order!</span>
+        </div>
+      )}
       <div className="px-4 py-4">
         <h3 className="text-base font-semibold text-foreground mb-3">Price Details</h3>
 
@@ -31,15 +34,7 @@ export default function PriceSummary() {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Delivery Fee</span>
-            {deliveryFee === 0 ? (
-              <span className="text-sm font-semibold text-success">FREE</span>
-            ) : (
-              <span className="text-sm font-semibold text-foreground">₹{deliveryFee}</span>
-            )}
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Member Discount (5%)</span>
-            <span className="text-sm font-semibold text-success">-₹{discount}</span>
+            <span className="text-sm font-semibold text-foreground">₹{deliveryFee}</span>
           </div>
 
           <div className="h-px bg-border my-1" />
@@ -49,13 +44,6 @@ export default function PriceSummary() {
             <span className="text-lg font-semibold text-foreground">₹{total}</span>
           </div>
         </div>
-
-        {deliveryFee > 0 && (
-          <div className="mt-3 flex items-center gap-1.5 bg-accent/10 rounded-xl px-3 py-2">
-            <Icon name="InformationCircleIcon" size={14} className="text-accent" />
-            <span className="text-xs font-medium text-accent">Add ₹{199 - subtotal} more for FREE delivery</span>
-          </div>
-        )}
       </div>
     </div>
   );

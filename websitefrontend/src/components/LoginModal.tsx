@@ -4,6 +4,7 @@ import Icon from './ui/AppIcon';
 import AppLogo from './ui/AppLogo';
 import api from '@/api';
 import toast from 'react-hot-toast';
+import { getSessionId } from '@/utils/sessionUtils';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -66,7 +67,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     try {
       const res = await api.post('/auth/verify-otp', { 
         mobile: phone, 
-        otp: otp 
+        otp: otp,
+        session_id: getSessionId()
       });
       if (res.data.status === 1) {
         // Check if user is new (no name)
@@ -104,7 +106,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     try {
       const res = await api.post('/auth/update-profile', { 
         user_id: userId, 
-        name: name.trim() 
+        name: name.trim(),
+        session_id: getSessionId()
       });
       if (res.data.status === 1) {
         toast.success('Login successful! Welcome to Hommlie Shop');

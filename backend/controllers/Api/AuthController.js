@@ -75,7 +75,7 @@ exports.registerOrLogin = async (req, res) => {
 };
 
 exports.verifyOtp = async (req, res) => {
-  const { mobile, otp, name, app_token } = req.body;
+  const { mobile, otp, name, app_token, session_id } = req.body;
 
   if (!mobile || !otp) {
     return res.status(200).json({
@@ -121,6 +121,15 @@ exports.verifyOtp = async (req, res) => {
     const response = await axios.request(options);
 
     if (response.data.type === "success") {
+      // MERGE CART: If session_id is provided, associate guest cart items with this user
+      if (session_id) {
+        const { Cart } = require("../../models/index");
+        await Cart.update(
+          { customer_id: user.id },
+          { where: { session_id: session_id, customer_id: null } }
+        );
+      }
+
       // Generate JWT token
       const token = jwt.sign(
         {
@@ -202,7 +211,7 @@ exports.reSendOtp = async (req, res) => {
 };
 
 exports.updateProfile = async (req, res) => {
-  const { user_id, name } = req.body;
+  const { user_id, name, session_id } = req.body;
 
   if (!user_id || !name) {
     return res.status(200).json({
@@ -213,6 +222,15 @@ exports.updateProfile = async (req, res) => {
 
   try {
     await Customer.update({ name }, { where: { id: user_id } });
+
+    // MERGE CART: If session_id is provided, associate guest cart items with this user
+    if (session_id) {
+      const { Cart } = require("../../models/index");
+      await Cart.update(
+        { customer_id: user_id },
+        { where: { session_id: session_id, customer_id: null } }
+      );
+    }
     
     const user = await Customer.findOne({ where: { id: user_id } });
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import api, { IMAGE_BASE_URL } from '../api';
 import {
@@ -14,9 +14,51 @@ const DashboardLayout = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const userPermissions = user.permissions || [];
 
+  const [currentStatus, setCurrentStatus] = useState(user.profile_status || 'pending');
+  const isVendor = user.role?.role_name?.toLowerCase().includes('vendor') || user.role?.role_name?.toLowerCase().includes('seller');
+  const isApproved = currentStatus === 'approved';
+  const isAdmin = user.role?.role_name?.toLowerCase().includes('admin');
+
   const [openSections, setOpenSections] = useState({ access: true, master: false, catalog: true });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [pendingVendors, setPendingVendors] = useState(0);
+
+  useEffect(() => {
+    fetchProfileStatus();
+    if (isAdmin) {
+      fetchPendingCount();
+      const interval = setInterval(fetchPendingCount, 60000); // Check every minute
+      return () => clearInterval(interval);
+    }
+  }, [isAdmin]);
+
+  const fetchProfileStatus = async () => {
+    try {
+      const res = await api.get('/profile');
+      if (res.data.user) {
+        const freshStatus = res.data.user.profile_status;
+        setCurrentStatus(freshStatus);
+        
+        // Update localStorage if status has changed
+        if (freshStatus !== user.profile_status) {
+          const updatedUser = { ...user, profile_status: freshStatus };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching profile status:", err);
+    }
+  };
+
+  const fetchPendingCount = async () => {
+    try {
+      const res = await api.get('/users/pending/count');
+      setPendingVendors(res.data.count || 0);
+    } catch (err) {
+      console.error("Error fetching pending vendors:", err);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -42,6 +84,7 @@ const DashboardLayout = () => {
       title: 'Catalog',
       icon: ImageIcon,
       isSubMenu: true,
+      hidden: isVendor && !isApproved,
       items: [
         { name: 'Categories', path: '/categories', req: 'category_management' },
         { name: 'Sub-Categories', path: '/sub-categories', req: 'sub_category_management' },
@@ -53,6 +96,7 @@ const DashboardLayout = () => {
       title: 'Warehouse',
       icon: MapPin,
       isSubMenu: true,
+      hidden: isVendor && !isApproved,
       items: [
         { name: 'Inventory Management', path: '/warehouse', req: 'warehouse_management' },
       ]
@@ -62,6 +106,7 @@ const DashboardLayout = () => {
       title: 'Order Management',
       icon: ShoppingBag,
       isSubMenu: true,
+      hidden: isVendor && !isApproved,
       items: [
         { name: 'Manual Order Booking', path: '/order-booking', req: 'order_management' },
         { name: 'Order Processing', path: '/order-management', req: 'order_management' },
@@ -73,6 +118,7 @@ const DashboardLayout = () => {
       title: 'General Master',
       icon: Settings,
       isSubMenu: true,
+      hidden: isVendor && !isApproved,
       items: [
         { name: 'Users', path: '/users', req: 'user_management' },
         { name: 'Roles', path: '/roles', req: 'role_management' },
@@ -102,6 +148,7 @@ const DashboardLayout = () => {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-2 custom-scrollbar px-3 space-y-1">
           {sidebarItems.map((item) => {
+            if (item.hidden) return null;
             if (!item.isSubMenu) {
               if (item.req && !hasAccess(item.req)) return null;
               const isActive = location.pathname === item.path;
@@ -176,9 +223,16 @@ const DashboardLayout = () => {
           </div>
 
           <div className="flex items-center space-x-6">
-            <button className="relative text-slate-400 hover:text-slate-600 transition-colors">
+            <button 
+              onClick={() => isAdmin && navigate('/users')}
+              className="relative text-slate-400 hover:text-slate-600 transition-colors"
+            >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+              {pendingVendors > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white">
+                  {pendingVendors}
+                </span>
+              )}
             </button>
 
             <div className="relative">
@@ -226,6 +280,34 @@ const DashboardLayout = () => {
 
         {/* Page Canvas */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 md:p-8">
+          {isVendor && !isApproved && (
+            <div className="mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm animate-pulse">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Bell className="h-5 w-5 text-amber-500" />
+                </div>
+                <div className="ml-3 flex-1 md:flex md:items-center md:justify-between">
+                  <div>
+                    <p className="text-sm text-amber-700 font-bold">
+                      Profile Pending Approval
+                    </p>
+                    <p className="text-xs text-amber-600">
+                      Your account is currently under review. Please complete your profile details and wait for admin approval to access all features.
+                    </p>
+                  </div>
+                  <div className="mt-4 md:mt-0 md:ml-6">
+                    <Link
+                      to="/profile"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-xs font-bold rounded-lg shadow-sm text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all active:scale-95"
+                    >
+                      <UserCircle className="w-4 h-4 mr-2" />
+                      Update Profile
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           <Outlet />
         </main>
       </div>

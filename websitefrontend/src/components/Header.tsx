@@ -16,9 +16,8 @@ interface HeaderProps {
 export default function Header({ title, showBack = false }: HeaderProps) {
   const [location, setLocation] = useState('Koramangala, Bengaluru');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const { isLoggedIn, user, logout, isLoginModalOpen, setIsLoginModalOpen } = useAuth();
   const { getTotalItems } = useCart();
-  const { isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
 
   const locations = [
@@ -29,8 +28,6 @@ export default function Header({ title, showBack = false }: HeaderProps) {
     'Bandra, Mumbai',
     'Andheri, Mumbai',
   ];
-
-
 
   return (
     <>
@@ -96,7 +93,7 @@ export default function Header({ title, showBack = false }: HeaderProps) {
                 </div>
               ) : (
                 <button 
-                  onClick={() => setIsLoginOpen(true)}
+                  onClick={() => setIsLoginModalOpen(true)}
                   className="w-10 h-10 rounded-full bg-muted flex items-center justify-center transition-all active:scale-90"
                 >
                   <Icon name="UserIcon" size={20} className="text-foreground" />
@@ -104,6 +101,7 @@ export default function Header({ title, showBack = false }: HeaderProps) {
               )}
             </div>
           </div>
+
 
           {/* Sub-header for Mobile Navigation / Search */}
           <div className="mt-3 lg:hidden">
@@ -180,7 +178,7 @@ export default function Header({ title, showBack = false }: HeaderProps) {
         </div>
       )}
 
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
     </>
   );
 }

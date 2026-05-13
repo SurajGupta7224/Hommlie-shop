@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { User, Role, Permission } = require("../models/index");
+const { User, Role, Permission, Customer } = require("../models/index");
 
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -12,8 +12,8 @@ const verifyToken = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Inject full user metadata into the request
-    const user = await User.findByPk(decoded.id, {
+    // Try finding in User table first (Admin/Seller)
+    let user = await User.findByPk(decoded.id, {
       include: [
         {
           model: Role,
@@ -30,12 +30,27 @@ const verifyToken = async (req, res, next) => {
       ]
     });
 
-    if (!user || user.status !== 'active') {
-      return res.status(401).json({ message: "User account suspended or missing." });
+    let userType = 'user';
+
+    // If not found in User, try Customer table (Storefront)
+    if (!user) {
+      user = await Customer.findByPk(decoded.id);
+      userType = 'customer';
+    }
+
+    if (!user) {
+      return res.status(401).json({ message: "User account missing." });
+    }
+
+    // Check status (handle both 'active' string for User and 1 for Customer)
+    const isActive = userType === 'user' ? user.status === 'active' : user.status == 1;
+    if (!isActive) {
+      return res.status(401).json({ message: "User account suspended." });
     }
 
     req.user = user;
-    req.userPermissions = user.role?.permissions?.map(p => p.permission_name) || [];
+    req.userType = userType;
+    req.userPermissions = userType === 'user' ? (user.role?.permissions?.map(p => p.permission_name) || []) : [];
 
     next();
   } catch (err) {

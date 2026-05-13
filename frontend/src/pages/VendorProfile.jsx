@@ -219,9 +219,14 @@ const VendorProfile = () => {
                 <p className="font-bold text-slate-800 tracking-widest">{vendor.aadhaar_number || '—'}</p>
               </div>
               
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 md:col-span-2">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">GST Number</p>
                 <p className="font-bold text-slate-800 uppercase tracking-wide">{vendor.gst_number || '—'}</p>
+              </div>
+              
+              <div className="p-4 bg-purple-50 rounded-2xl border border-purple-100">
+                <p className="text-[10px] uppercase font-bold text-purple-400 tracking-wider mb-1">Commission Rate (%)</p>
+                <p className="font-black text-purple-700 text-xl">{vendor.commission_percent || 0}%</p>
               </div>
             </div>
           </div>

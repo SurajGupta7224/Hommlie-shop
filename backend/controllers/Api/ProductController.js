@@ -195,8 +195,7 @@ const getProductDetail = async (req, res) => {
       console.log(`[API V2] Product NOT found in DB for slug: ${cleanSlug}`);
       return res.status(404).json({ status: 0, message: `Product not found for slug: ${cleanSlug}` });
     }
-    
-    console.log(`[API V2] Product found: ${product.name}`);
+
     return res.status(200).json({ status: 1, message: "data fetch success fully", data: formatProductResponse(product) });
   } catch (error) {
     console.error("[API V2] Product Detail Error:", error);

@@ -779,6 +779,7 @@ const ProductAllocation = () => {
           <div><label className="block text-xs font-bold text-slate-500 mb-2">Initial Stock</label><input required type="number" name="stock" value={formData.stock} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-sm outline-none focus:ring-2 focus:ring-violet-200" /></div>
           <div><label className="block text-xs font-bold text-slate-500 mb-2">Price (₹) *</label><input required type="number" step="0.01" name="price" value={formData.price} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-sm outline-none focus:ring-2 focus:ring-violet-200" /></div>
           <div><label className="block text-xs font-bold text-slate-500 mb-2">Discount Price (₹)</label><input type="number" step="0.01" name="discount_price" value={formData.discount_price} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-sm outline-none focus:ring-2 focus:ring-violet-200" /></div>
+          <div><label className="block text-xs font-bold text-slate-500 mb-2">Delivery Charge (₹)</label><input type="number" step="0.01" name="delivery_charge" value={formData.delivery_charge} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-sm outline-none focus:ring-2 focus:ring-violet-200" /></div>
           <div><label className="block text-xs font-bold text-slate-500 mb-2">Tax (%)</label><input type="number" step="0.01" name="tax_percent" value={formData.tax_percent} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-sm outline-none focus:ring-2 focus:ring-violet-200" /></div>
           
           <div className="md:col-span-4 flex justify-end"><button type="submit" disabled={submitting} className="px-8 py-2 rounded-xl font-bold bg-violet-600 text-white disabled:opacity-50">Allocate Product</button></div>
@@ -790,7 +791,7 @@ const ProductAllocation = () => {
         <table className="w-full text-left">
           <thead>
             <tr className="bg-slate-50 text-[10px] uppercase font-black text-slate-400">
-              <th className="p-4">Warehouse</th><th className="p-4">Product</th><th className="p-4">Variation / SKU</th><th className="p-4 text-right">Stock</th><th className="p-4 text-right">Price</th>
+              <th className="p-4">Warehouse</th><th className="p-4">Product</th><th className="p-4">Variation / SKU</th><th className="p-4 text-right">Stock</th><th className="p-4 text-right">Price</th><th className="p-4 text-right">Delivery</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -801,6 +802,7 @@ const ProductAllocation = () => {
                 <td className="p-4"><p className="text-sm text-slate-600">{inv.variation?.variation_name}</p><p className="text-xs text-slate-400 font-mono">{inv.variation?.sku}</p></td>
                 <td className="p-4 text-right font-mono font-bold text-slate-800">{inv.stock}</td>
                 <td className="p-4 text-right font-mono text-slate-800">₹{inv.price}</td>
+                <td className="p-4 text-right font-mono text-slate-800">₹{inv.delivery_charge || 0}</td>
               </tr>
             ))}
           </tbody>

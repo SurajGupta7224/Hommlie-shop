@@ -68,6 +68,12 @@ const updateProfile = async (req, res) => {
       if (req.files.gst_file) updateData.gst_file = req.files.gst_file[0].filename;
     }
 
+    // If user is a vendor, reset profile_status to pending on update
+    const isVendor = user.role?.role_name?.toLowerCase().includes('vendor') || user.role?.role_name?.toLowerCase().includes('seller');
+    if (isVendor) {
+      updateData.profile_status = 'pending';
+    }
+
     await user.update(updateData);
 
     return res.status(200).json({ 
@@ -76,7 +82,8 @@ const updateProfile = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        profile_photo: user.profile_photo
+        profile_photo: user.profile_photo,
+        profile_status: user.profile_status
       }
     });
   } catch (err) {
