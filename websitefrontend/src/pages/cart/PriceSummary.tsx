@@ -4,9 +4,10 @@ import { useCart } from '@/context/CartContext';
 import Icon from '@/components/ui/AppIcon';
 
 export default function PriceSummary() {
-  const { getSubtotal, getDeliveryFee, getFinalTotal, items } = useCart();
+  const { getSubtotal, getDeliveryFee, getFinalTotal, items, summary } = useCart();
   const subtotal = getSubtotal();
   const deliveryFee = getDeliveryFee();
+  const handlingFee = summary?.handling_fee || 0;
   const total = getFinalTotal();
 
   const totalOriginal = items?.reduce((acc, item) => {
@@ -35,6 +36,10 @@ export default function PriceSummary() {
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Delivery Fee</span>
             <span className="text-sm font-semibold text-foreground">₹{deliveryFee}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Handling & Tax</span>
+            <span className="text-sm font-semibold text-foreground">₹{(parseFloat(handlingFee as any) + parseFloat(summary?.tax as any || 0)).toFixed(2)}</span>
           </div>
 
           <div className="h-px bg-border my-1" />

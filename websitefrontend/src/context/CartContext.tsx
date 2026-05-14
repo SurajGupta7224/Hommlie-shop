@@ -35,8 +35,19 @@ interface AddableItem {
   user_id?: number;
 }
 
+interface CartSummary {
+  total_items: number;
+  subtotal: number;
+  delivery_charge: number;
+  handling_fee: number;
+  discount: number;
+  tax: number;
+  total: number;
+}
+
 interface CartContextType {
   items: CartItem[];
+  summary: CartSummary | null;
   loading: boolean;
   addItem: (item: AddableItem) => Promise<void>;
   updateQuantity: (cartItemId: number, quantity: number) => Promise<void>;
@@ -55,6 +66,7 @@ const CartContext = createContext<CartContextType | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [summary, setSummary] = useState<CartSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
@@ -81,6 +93,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       
       if (response.data.status === 1) {
         setItems(response.data.data.items || []);
+        const apiSummary = response.data.data.summary;
+        if (apiSummary) {
+          setSummary({
+            total_items: parseInt(apiSummary.total_items),
+            subtotal: parseFloat(apiSummary.subtotal),
+            delivery_charge: parseFloat(apiSummary.delivery_charge),
+            handling_fee: parseFloat(apiSummary.handling_fee),
+            discount: parseFloat(apiSummary.discount || 0),
+            tax: parseFloat(apiSummary.tax),
+            total: parseFloat(apiSummary.total)
+          });
+        }
       }
     } catch (error) {
       console.error('Failed to fetch cart:', error);
@@ -182,6 +206,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       
       if (response.data.status === 1) {
         setItems([]);
+        setSummary(null);
         toast.success('Cart cleared');
       } else {
         toast.error(response.data.message || 'Failed to clear cart');
@@ -200,30 +225,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items]);
 
   const getTotalItems = useCallback(() => {
-    return items.reduce((acc, i) => acc + i.quantity, 0);
-  }, [items]);
+    return summary?.total_items || items.reduce((acc, i) => acc + i.quantity, 0);
+  }, [items, summary]);
 
   const getTotalPrice = useCallback(() => {
-    return items.reduce((acc, i) => acc + i.total, 0);
-  }, [items]);
+    return summary?.total || items.reduce((acc, i) => acc + i.total, 0);
+  }, [items, summary]);
 
   const getSubtotal = useCallback(() => {
-    return items.reduce((acc, i) => acc + i.total, 0);
-  }, [items]);
+    return summary?.subtotal || items.reduce((acc, i) => acc + i.total, 0);
+  }, [items, summary]);
 
   const getDeliveryFee = useCallback(() => {
-    return items.reduce((acc, i) => acc + (parseFloat(i.delivery_charge as any) * i.quantity), 0);
-  }, [items]);
+    return summary?.delivery_charge || items.reduce((acc, i) => acc + (parseFloat(i.delivery_charge as any) * i.quantity), 0);
+  }, [items, summary]);
 
   const getFinalTotal = useCallback(() => {
-    const subtotal = getSubtotal();
-    const delivery = getDeliveryFee();
-    return subtotal + delivery;
-  }, [getSubtotal, getDeliveryFee]);
+    return summary?.total || (getSubtotal() + getDeliveryFee());
+  }, [summary, getSubtotal, getDeliveryFee]);
 
   return (
     <CartContext.Provider value={{ 
       items, 
+      summary,
       loading,
       addItem, 
       updateQuantity,

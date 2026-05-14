@@ -4,6 +4,8 @@ interface User {
   id: number;
   name: string | null;
   mobile: string;
+  email?: string;
+  profile_pic?: string | null;
 }
 
 interface AuthContextType {
@@ -11,6 +13,7 @@ interface AuthContextType {
   isLoggedIn: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
+  updateUser: (userData: Partial<User>) => void;
   isLoginModalOpen: boolean;
   setIsLoginModalOpen: (open: boolean) => void;
 }
@@ -51,12 +54,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoggedIn(false);
   };
 
+  const updateUser = (userData: Partial<User>) => {
+    if (!user) return;
+    const newUser = { ...user, ...userData };
+    setUser(newUser);
+    localStorage.setItem('user', JSON.stringify(newUser));
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
       isLoggedIn, 
       login, 
       logout,
+      updateUser,
       isLoginModalOpen,
       setIsLoginModalOpen
     }}>

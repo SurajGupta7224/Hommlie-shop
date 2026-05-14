@@ -5,7 +5,7 @@ const fs = require("fs");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let folderName = 'Others';
-    if (file.fieldname === 'profile_photo') folderName = 'Profile_Photo';
+    if (file.fieldname === 'profile_photo' || file.fieldname === 'profile_pic') folderName = 'ProfilePics';
     if (file.fieldname === 'pan_card_file') folderName = 'Pan_Card';
     if (file.fieldname === 'aadhaar_card_file') folderName = 'Aadhaar_Card';
     if (file.fieldname === 'gst_file') folderName = 'GST';

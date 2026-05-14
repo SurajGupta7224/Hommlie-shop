@@ -233,6 +233,11 @@ const OrderManagement = () => {
                   <td className="border border-slate-200 px-3 py-1.5 overflow-hidden">
                     <span className="font-bold text-purple-700 text-xs">{order.order_number}</span>
                     <span className="block text-[9px] text-slate-400 uppercase font-bold mt-0.5">{order.payment_method}</span>
+                    {order.parent_order_number && (
+                      <span className="inline-flex items-center gap-0.5 mt-1 bg-violet-100 text-violet-600 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                        🔗 Multi-Vendor
+                      </span>
+                    )}
                   </td>
                   <td className="border border-slate-200 px-3 py-1.5 overflow-hidden">
                     <p className="font-bold text-slate-800 text-xs">{order.customer?.name}</p>

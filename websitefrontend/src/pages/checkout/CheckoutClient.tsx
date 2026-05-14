@@ -2,47 +2,98 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import Icon from '@/components/ui/AppIcon';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
+import AddressModal from '@/components/AddressModal';
+import { getAddresses, placeOrder } from '@/api';
+import toast from 'react-hot-toast';
 
 const paymentMethods = [
-  { id: 'upi', name: 'UPI', description: 'Google Pay, PhonePe, Paytm', icon: 'BoltIcon', color: 'bg-primary/5', text: 'text-primary' },
-  { id: 'card', name: 'Cards', description: 'Credit, Debit & ATM Cards', icon: 'CreditCardIcon', color: 'bg-primary/5', text: 'text-primary' },
-  { id: 'cod', name: 'Cash on Delivery', description: 'Pay at your doorstep', icon: 'BanknotesIcon', color: 'bg-primary/5', text: 'text-primary' },
-];
-
-const addresses = [
-  { id: 1, type: 'Home', address: 'B-12, Green Park, Koramangala, Bengaluru', landmark: 'Near Central Mall', pin: '560034', isDefault: true },
-  { id: 2, type: 'Office', address: '4th Floor, Tech Hub, HSR Layout, Bengaluru', landmark: 'Opposite Metro Station', pin: '560102', isDefault: false },
+  { id: 'upi', name: 'UPI', description: 'Google Pay, PhonePe, Paytm (Blocked)', icon: 'BoltIcon', color: 'bg-gray-100', text: 'text-gray-400', disabled: true },
+  { id: 'cod', name: 'Cash on Delivery', description: 'Pay at your doorstep', icon: 'BanknotesIcon', color: 'bg-primary/5', text: 'text-primary', disabled: false },
 ];
 
 export default function CheckoutClient() {
-  const { items, getTotalPrice, clearCart } = useCart();
+  const { items, summary, clearCart } = useCart();
+  const { isLoggedIn, setIsLoginModalOpen } = useAuth();
   const navigate = useNavigate();
-  const [selectedAddress, setSelectedAddress] = useState(addresses[0].id);
-  const [selectedPayment, setSelectedPayment] = useState(paymentMethods[0].id);
+  
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState('cod');
   const [isPlacing, setIsPlacing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
 
-  const totalPrice = getTotalPrice();
-  const deliveryFee = totalPrice < 199 ? 30 : 0;
-  const platformFee = 5;
-  const discount = totalPrice > 500 ? 50 : 0;
-  const finalAmount = totalPrice + deliveryFee + platformFee - discount;
+  const totalPrice = summary?.subtotal || 0;
+  const deliveryFee = summary?.delivery_charge || 0;
+  const platformFee = summary?.handling_fee || 0;
+  const discount = summary?.discount || 0;
+  const finalAmount = summary?.total || 0;
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    if (isLoggedIn) {
+      fetchAddresses();
+    }
+  }, [isLoggedIn]);
 
-  const handlePlaceOrder = () => {
+  const fetchAddresses = async () => {
+    setIsLoadingAddresses(true);
+    try {
+      const response = await getAddresses();
+      if (response.data.status === 1) {
+        setAddresses(response.data.data);
+        const defaultAddr = response.data.data.find((a: any) => a.is_default === 1);
+        if (defaultAddr) {
+          setSelectedAddressId(defaultAddr.id);
+        } else if (response.data.data.length > 0) {
+          setSelectedAddressId(response.data.data[0].id);
+        }
+      }
+    } catch (error) {
+      console.error("fetchAddresses error:", error);
+    } finally {
+      setIsLoadingAddresses(false);
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!isLoggedIn) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    if (!selectedAddressId) {
+      toast.error("Please select a delivery address");
+      return;
+    }
+
     setIsPlacing(true);
-    setTimeout(() => {
+    try {
+      const response = await placeOrder({
+        address_id: selectedAddressId,
+        payment_method: selectedPayment === 'cod' ? 'COD' : 'Online',
+        notes: ''
+      });
+
+      if (response.data.status === 1) {
+        toast.success("Order placed successfully!");
+        setShowSuccess(true);
+        clearCart();
+        // Redirect or show success UI is handled by showSuccess state
+      } else {
+        toast.error(response.data.message || "Failed to place order");
+      }
+    } catch (error: any) {
+      console.error("handlePlaceOrder error:", error);
+      toast.error(error.response?.data?.message || "An error occurred while placing order");
+    } finally {
       setIsPlacing(false);
-      setShowSuccess(true);
-      clearCart();
-    }, 2000);
+    }
   };
 
   if (items.length === 0 && !showSuccess) {
@@ -68,29 +119,57 @@ export default function CheckoutClient() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">Delivery Address</h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {addresses.map((addr) => (
-                  <div 
-                    key={addr.id}
-                    onClick={() => setSelectedAddress(addr.id)}
-                    className={`flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer ${selectedAddress === addr.id ? 'border-primary bg-primary/5' : 'border-gray-100 bg-white'}`}
+
+              {!isLoggedIn ? (
+                <div className="p-8 text-center border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
+                  <Icon name="MapPinIcon" size={32} className="text-gray-300 mx-auto mb-3" />
+                  <p className="text-sm text-gray-500 mb-4">Please login to manage your delivery addresses</p>
+                  <button 
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="px-6 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-all"
                   >
-                    <div className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedAddress === addr.id ? 'border-primary bg-primary' : 'border-gray-300'}`}>
-                      {selectedAddress === addr.id && <div className="w-2 h-2 bg-white rounded-full" />}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Icon name={addr.type === 'Home' ? 'HomeIcon' : 'BuildingOfficeIcon'} size={16} className="text-gray-500" />
-                        <span className="text-sm font-semibold text-gray-800">{addr.type}</span>
+                    Login to Continue
+                  </button>
+                </div>
+              ) : isLoadingAddresses ? (
+                <div className="space-y-3">
+                  {[1, 2].map(i => (
+                    <div key={i} className="h-24 bg-gray-50 animate-pulse rounded-xl" />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {addresses.map((addr) => (
+                      <div 
+                        key={addr.id}
+                        onClick={() => setSelectedAddressId(addr.id)}
+                        className={`group relative flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer ${selectedAddressId === addr.id ? 'border-primary bg-primary/5' : 'border-gray-100 bg-white hover:border-gray-200'}`}
+                      >
+                        <div className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedAddressId === addr.id ? 'border-primary bg-primary' : 'border-gray-300'}`}>
+                          {selectedAddressId === addr.id && <div className="w-2 h-2 bg-white rounded-full" />}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Icon name={addr.type === 'Home' ? 'HomeIcon' : addr.type === 'Office' ? 'BuildingOfficeIcon' : 'MapPinIcon'} size={16} className="text-gray-500" />
+                            <span className="text-sm font-semibold text-gray-800">{addr.type}</span>
+                            {addr.is_default === 1 && <span className="px-1.5 py-0.5 bg-green-100 text-[10px] font-bold text-green-700 rounded uppercase">Default</span>}
+                          </div>
+                          <p className="text-sm text-gray-600 leading-snug line-clamp-2">{addr.address_line}</p>
+                          {addr.landmark && <p className="text-[11px] text-gray-400 mt-1 italic">Near {addr.landmark}</p>}
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-600 leading-snug">{addr.address}, {addr.landmark}, {addr.pin}</p>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <button className="w-full mt-4 py-3 text-primary text-sm font-semibold border border-primary/20 rounded-xl hover:bg-primary/5 transition-colors">
-                + Add New Address
-              </button>
+                  <button 
+                    onClick={() => setIsAddressModalOpen(true)}
+                    className="w-full mt-4 py-3 text-primary text-sm font-semibold border border-primary/20 rounded-xl hover:bg-primary/5 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Icon name="PlusIcon" size={16} />
+                    Add New Address
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Payment Methods */}
@@ -100,15 +179,15 @@ export default function CheckoutClient() {
                 {paymentMethods.map((pm) => (
                   <div 
                     key={pm.id}
-                    onClick={() => setSelectedPayment(pm.id)}
-                    className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${selectedPayment === pm.id ? 'border-primary bg-primary/5' : 'border-gray-100 bg-white'}`}
+                    onClick={() => !pm.disabled && setSelectedPayment(pm.id)}
+                    className={`flex items-center justify-between p-4 rounded-xl border transition-all ${pm.disabled ? 'opacity-50 cursor-not-allowed bg-gray-50 border-gray-100' : (selectedPayment === pm.id ? 'border-primary bg-primary/5 cursor-pointer' : 'border-gray-100 bg-white hover:border-gray-200 cursor-pointer')}`}
                   >
                     <div className="flex items-center gap-4">
                       <div className={`w-10 h-10 ${pm.color} rounded-lg flex items-center justify-center`}>
                         <Icon name={pm.icon as any} size={20} className={pm.text} />
                       </div>
                       <div>
-                        <span className="block text-sm font-semibold text-gray-800">{pm.name}</span>
+                        <span className={`block text-sm font-semibold ${pm.disabled ? 'text-gray-400' : 'text-gray-800'}`}>{pm.name}</span>
                         <span className="block text-xs text-gray-500">{pm.description}</span>
                       </div>
                     </div>
@@ -137,8 +216,8 @@ export default function CheckoutClient() {
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Handling Fee</span>
-                  <span className="text-gray-800">₹{platformFee}</span>
+                  <span className="text-gray-600">Handling & Tax</span>
+                  <span className="text-gray-800">₹{(parseFloat(platformFee as any) + parseFloat(summary?.tax as any || 0)).toFixed(2)}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-sm">
@@ -178,6 +257,12 @@ export default function CheckoutClient() {
           </div>
         </div>
       </main>
+
+      <AddressModal 
+        isOpen={isAddressModalOpen} 
+        onClose={() => setIsAddressModalOpen(false)} 
+        onSuccess={fetchAddresses} 
+      />
 
       {/* Success Modal */}
       {showSuccess && (

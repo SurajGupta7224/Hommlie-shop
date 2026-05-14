@@ -50,7 +50,7 @@ export default function ProductCardSmall({ product, onSelectVariation }: Product
       addItem({ 
         product_id: productId, 
         variation_id: variationId as number,
-        user_id: product.user_id || product.userId
+        user_id: product.userId
       });
     }
   };

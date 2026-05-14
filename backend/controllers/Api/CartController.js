@@ -67,6 +67,8 @@ const formatCartItem = async (item) => {
     price: price,
     discount_price: discountPrice,
     delivery_charge: inventory ? parseFloat(inventory.delivery_charge || 0) : 0,
+    handling_charge: inventory ? parseFloat(inventory.handling_charge || 0) : 0,
+    tax_percent: inventory ? parseFloat(inventory.tax_percent || 0) : 0,
     total: discountPrice ? discountPrice * item.quantity : price * item.quantity
   };
 };
@@ -76,9 +78,22 @@ exports.addToCart = async (req, res) => {
   const { session_id, product_id, variation_id, quantity = 1, user_id } = req.body;
   
   // Identify the customer
-  let customerId = req.headers['x-customer-id'] || null;
-  if (!customerId && req.user && req.userType === 'customer') {
-    customerId = req.user.id;
+  // Prioritize verified user from token
+  let customerId = (req.user && req.userType === 'customer') ? req.user.id : null;
+  
+  // If no verified user, but header is present, we need to be careful.
+  // In a truly optional auth scenario, if the token was invalid, we should probably 
+  // NOT trust the x-customer-id header as it might be stale.
+  if (!customerId) {
+    const headerCustomerId = req.headers['x-customer-id'];
+    if (headerCustomerId) {
+      // If we have a token but it's invalid (req.user is null), 
+      // then this header is likely stale. We proceed as guest.
+      const authHeader = req.headers["authorization"];
+      if (!authHeader) {
+        customerId = headerCustomerId;
+      }
+    }
   }
   
   // Identify the seller (user_id from product data)
@@ -198,7 +213,12 @@ exports.addToCart = async (req, res) => {
 // Get Cart
 exports.getCart = async (req, res) => {
   const { session_id } = req.query;
-  const customerId = req.headers['x-customer-id'] || null;
+  
+  // Prioritize verified user from token
+  let customerId = (req.user && req.userType === 'customer') ? req.user.id : null;
+  if (!customerId && !req.headers["authorization"]) {
+    customerId = req.headers['x-customer-id'] || null;
+  }
 
   try {
     const whereClause = {};
@@ -223,6 +243,8 @@ exports.getCart = async (req, res) => {
 
     let subtotal = 0;
     let totalDeliveryCharge = 0;
+    let totalItemHandlingCharge = 0;
+    let totalTaxAmount = 0;
     let totalItems = 0;
     const formattedItems = [];
 
@@ -231,8 +253,19 @@ exports.getCart = async (req, res) => {
       formattedItems.push(formatted);
       subtotal += formatted.total;
       totalDeliveryCharge += formatted.delivery_charge;
+      totalItemHandlingCharge += (formatted.handling_charge || 0) * item.quantity;
+      
+      // Calculate tax on total for this item
+      const itemTax = (formatted.total * (formatted.tax_percent || 0)) / 100;
+      totalTaxAmount += itemTax;
+      
       totalItems += item.quantity;
     }
+
+    const totalHandlingFee = totalItemHandlingCharge;
+    
+    const discount = subtotal > 1000 ? 100 : 0; 
+    const total = subtotal + totalDeliveryCharge + totalHandlingFee + totalTaxAmount - discount;
 
     return res.status(200).json({
       status: 1,
@@ -243,8 +276,10 @@ exports.getCart = async (req, res) => {
           total_items: totalItems,
           subtotal: subtotal.toFixed(2),
           delivery_charge: totalDeliveryCharge.toFixed(2),
-          tax: 0,
-          total: (subtotal + totalDeliveryCharge).toFixed(2)
+          handling_fee: totalHandlingFee.toFixed(2),
+          tax: totalTaxAmount.toFixed(2),
+          discount: discount.toFixed(2),
+          total: total.toFixed(2)
         }
       }
     });
@@ -262,7 +297,12 @@ exports.getCart = async (req, res) => {
 // Update Cart Quantity
 exports.updateQuantity = async (req, res) => {
   const { cart_item_id, quantity, session_id } = req.body;
-  const customerId = req.headers['x-customer-id'] || null;
+  
+  // Prioritize verified user from token
+  let customerId = (req.user && req.userType === 'customer') ? req.user.id : null;
+  if (!customerId && !req.headers["authorization"]) {
+    customerId = req.headers['x-customer-id'] || null;
+  }
 
   if (!cart_item_id || !quantity || quantity < 1) {
     return res.status(200).json({
@@ -336,7 +376,12 @@ exports.updateQuantity = async (req, res) => {
 // Remove from Cart
 exports.removeFromCart = async (req, res) => {
   const { cart_item_id, session_id } = req.body;
-  const customerId = req.headers['x-customer-id'] || null;
+  
+  // Prioritize verified user from token
+  let customerId = (req.user && req.userType === 'customer') ? req.user.id : null;
+  if (!customerId && !req.headers["authorization"]) {
+    customerId = req.headers['x-customer-id'] || null;
+  }
 
   if (!cart_item_id) {
     return res.status(200).json({
@@ -384,7 +429,12 @@ exports.removeFromCart = async (req, res) => {
 // Clear Cart
 exports.clearCart = async (req, res) => {
   const { session_id } = req.body;
-  const customerId = req.headers['x-customer-id'] || null;
+  
+  // Prioritize verified user from token
+  let customerId = (req.user && req.userType === 'customer') ? req.user.id : null;
+  if (!customerId && !req.headers["authorization"]) {
+    customerId = req.headers['x-customer-id'] || null;
+  }
 
   try {
     const whereClause = {};

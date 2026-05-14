@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft, User, MapPin, Package, CreditCard, Clock,
   CheckCircle, Truck, XCircle, AlertCircle, ChevronRight,
-  Phone, Building2, FileText, ShoppingBag, Plus, X
+  Phone, Building2, FileText, ShoppingBag, Plus, X, Store, Link2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
@@ -44,6 +44,7 @@ const OrderDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
+  const [multiVendorInfo, setMultiVendorInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -57,6 +58,9 @@ const OrderDetails = () => {
     try {
       const res = await api.get(`/orders/${id}`);
       setOrder(res.data.order);
+      if (res.data.multi_vendor_info) {
+        setMultiVendorInfo(res.data.multi_vendor_info);
+      }
     } catch {
       toast.error('Failed to load order');
       navigate('/order-management');
@@ -120,6 +124,24 @@ const OrderDetails = () => {
 
   return (
     <div className="py-6 px-0">
+      {/* Multi-Vendor Parent Order Banner */}
+      {multiVendorInfo && (
+        <div className="mb-5 bg-violet-50 border border-violet-200 rounded-2xl px-5 py-4 flex items-center gap-4">
+          <div className="w-9 h-9 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Link2 className="w-5 h-5 text-violet-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-black text-violet-500 uppercase tracking-widest">Multi-Vendor Checkout</p>
+            <p className="text-sm font-bold text-violet-800 truncate mt-0.5">
+              Parent Ref: <span className="font-mono">{multiVendorInfo.parent_order_number}</span>
+            </p>
+          </div>
+          <span className="bg-violet-600 text-white text-xs font-black px-3 py-1.5 rounded-full flex-shrink-0">
+            {multiVendorInfo.total_sub_orders} sub-orders
+          </span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <button onClick={() => navigate('/order-management')} className="hover:text-purple-600 transition-colors text-slate-400">
@@ -127,6 +149,11 @@ const OrderDetails = () => {
         </button>
         <div>
           <h1 className="text-2xl font-black text-slate-800">{order.order_number}</h1>
+          {order.parent_order_number && (
+            <p className="text-xs text-slate-400 font-medium mt-0.5">
+              Customer order ref: <span className="font-mono font-bold text-slate-600">{order.parent_order_number}</span>
+            </p>
+          )}
         </div>
         <div className="ml-auto flex items-center gap-3">
           <StatusBadge status={order.status} />
@@ -421,6 +448,43 @@ const OrderDetails = () => {
 
             </div>
           </div>
+          {/* Vendor Info Card — shown for online orders (user = the vendor) */}
+          {order.user && order.order_source === 'online' && (
+            <div className="bg-white rounded-3xl border border-violet-100 shadow-sm p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <Store className="w-5 h-5 text-violet-600" />
+                <h3 className="font-black text-slate-800">Vendor</h3>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Business Name</p>
+                  <p className="font-bold text-violet-700 mt-1">{order.user.trade_name || order.user.name}</p>
+                </div>
+                {order.user.name && order.user.trade_name && (
+                  <div>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Contact Name</p>
+                    <p className="font-medium text-slate-700 mt-1 text-sm">{order.user.name}</p>
+                  </div>
+                )}
+                {order.user.phone && (
+                  <div>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Phone</p>
+                    <a href={`tel:${order.user.phone}`} className="font-bold text-violet-600 mt-1 flex items-center gap-1.5 hover:underline">
+                      <Phone className="w-3.5 h-3.5" /> {order.user.phone}
+                    </a>
+                  </div>
+                )}
+                <div className="pt-2">
+                  <Link
+                    to={`/vendor-profile/${order.user.id}`}
+                    className="text-xs font-bold text-violet-600 hover:text-violet-800 hover:underline flex items-center gap-1"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" /> View Vendor Profile
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -16,8 +16,11 @@ export default function CartItemRow({ item }: { item: CartItem }) {
       {/* Info */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-foreground leading-tight truncate">{item.product.name}</p>
-        <p className="text-xs text-muted-foreground font-medium">{item.variation.name || item.variation.unit || '1 unit'}</p>
-        <p className="text-sm font-bold text-foreground mt-0.5">₹{item.total}</p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <p className="text-xs text-muted-foreground font-medium">{item.variation.name || item.variation.unit || '1 unit'}</p>
+          <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+          <p className="text-sm font-bold text-foreground">₹{item.total}</p>
+        </div>
       </div>
 
       {/* Qty Controls */}

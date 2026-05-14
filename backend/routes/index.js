@@ -48,14 +48,14 @@ router.get("/profile", verifyToken, requirePermission('profile'), profileControl
 router.put("/profile", verifyToken, requirePermission('profile'), userUploads, profileController.updateProfile);
 
 // Category routes
-router.get("/categories", verifyToken, requirePermission('category_management'), categoryController.getAllCategories);
+router.get("/categories", verifyToken, requirePermission(['category_management', 'product_management']), categoryController.getAllCategories);
 router.post("/categories", verifyToken, requirePermission('category_management'), categoryUploads, categoryController.createCategory);
 router.put("/categories/:id", verifyToken, requirePermission('category_management'), categoryUploads, categoryController.updateCategory);
 router.patch("/categories/:id/status", verifyToken, requirePermission('category_management'), categoryController.toggleCategoryStatus);
 router.delete("/categories/:id", verifyToken, requirePermission('category_management'), categoryController.deleteCategory);
 
 // Sub-Category routes
-router.get("/sub-categories", verifyToken, requirePermission('sub_category_management'), subCategoryController.getAllSubCategories);
+router.get("/sub-categories", verifyToken, requirePermission(['sub_category_management', 'product_management']), subCategoryController.getAllSubCategories);
 router.post("/sub-categories", verifyToken, requirePermission('sub_category_management'), subCategoryUploads, subCategoryController.createSubCategory);
 router.put("/sub-categories/:id", verifyToken, requirePermission('sub_category_management'), subCategoryUploads, subCategoryController.updateSubCategory);
 router.patch("/sub-categories/:id/status", verifyToken, requirePermission('sub_category_management'), subCategoryController.toggleSubCategoryStatus);
@@ -137,6 +137,7 @@ router.delete("/cart", verifyToken, requirePermission('order_management'), cartC
 router.get("/orders/serviceability", verifyToken, requirePermission('order_management'), orderController.checkServiceability);
 router.post("/orders/check-stock", verifyToken, requirePermission('order_management'), orderController.checkStock);
 router.get("/orders", verifyToken, requirePermission('order_management'), orderController.getOrders);
+router.get("/orders/:id/related", verifyToken, requirePermission('order_management'), orderController.getRelatedOrders);
 router.get("/orders/:id", verifyToken, requirePermission('order_management'), orderController.getOrderById);
 router.post("/orders", verifyToken, requirePermission('order_management'), orderController.placeOrder);
 router.patch("/orders/:id/status", verifyToken, requirePermission('order_management'), orderController.updateOrderStatus);

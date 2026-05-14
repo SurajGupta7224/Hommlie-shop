@@ -34,6 +34,7 @@ interface Product {
   slug: string;
   description: string;
   variations: Variation[];
+  user_id?: number;
 }
 
 interface ProductGridProps {

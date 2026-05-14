@@ -14,11 +14,13 @@ const getAllCategories = async (req, res) => {
     where.status = status;
   }
 
-  // Check if user is admin
+  // Check if user is admin or has product_management permission
   const isAdmin = req.user?.role?.role_name?.toLowerCase() === 'admin';
+  const hasProductAccess = req.userPermissions?.includes('product_management');
   
-  // If not admin, filter by user_id
-  if (!isAdmin) {
+  // If not admin AND doesn't have product access, filter by user_id
+  // Actually, if they have product access, they need to see ALL categories to add products
+  if (!isAdmin && !hasProductAccess) {
     where.user_id = req.user.id;
   }
 

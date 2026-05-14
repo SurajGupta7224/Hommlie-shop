@@ -21,8 +21,11 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // API Routes
+console.log("TRACE: Requiring admin routes...");
 const adminRoutes = require("./routes/index");
+console.log("TRACE: Requiring storefront routes...");
 const storefrontRoutes = require("./routes/Api");
+console.log("TRACE: Routes required successfully.");
 
 // Storefront routes (Public) - Priority for customer-facing paths
 app.use("/api", storefrontRoutes);
@@ -42,6 +45,7 @@ console.log("Starting database synchronization...");
 sequelize.sync()
   .then(() => {
     console.log(" Database synced successfully");
+
     server.listen(PORT, () => {
       console.log(` Server running on port ${PORT}`);
     });

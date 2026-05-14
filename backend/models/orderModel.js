@@ -22,6 +22,7 @@ const Order = sequelize.define("Order", {
   items_total: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
   delivery_charge: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
   tax_total: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
+  handling_total: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
   final_amount: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
   payment_method: {
     type: DataTypes.ENUM('COD', 'Online'),
@@ -48,6 +49,11 @@ const Order = sequelize.define("Order", {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: { model: 'users', key: 'id' }
+  },
+  parent_order_number: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+    comment: 'Groups all sub-orders from one multi-vendor cart checkout'
   },
   created_by: {
     type: DataTypes.INTEGER,

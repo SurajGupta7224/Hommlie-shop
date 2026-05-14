@@ -141,13 +141,18 @@ exports.verifyOtp = async (req, res) => {
         { expiresIn: "30d" }
       );
 
+      const baseUrl = process.env.APP_URL || 'http://localhost:5000';
+      const profilePicUrl = user.profile_pic ? `${baseUrl}/uploads/ProfilePics/${user.profile_pic}` : null;
+
       return res.status(200).json({
         status: 1,
         message: response.data.message,
         token,
         user_id: user.id,
         user_name: user.name,
-        mobile: user.mobile
+        mobile: user.mobile,
+        email: user.email,
+        profile_pic: profilePicUrl
       });
     } else {
       return res.status(200).json({
@@ -211,7 +216,7 @@ exports.reSendOtp = async (req, res) => {
 };
 
 exports.updateProfile = async (req, res) => {
-  const { user_id, name, session_id } = req.body;
+  const { user_id, name, email, session_id } = req.body;
 
   if (!user_id || !name) {
     return res.status(200).json({
@@ -221,7 +226,16 @@ exports.updateProfile = async (req, res) => {
   }
 
   try {
-    await Customer.update({ name }, { where: { id: user_id } });
+    const updateData = { name };
+    if (email !== undefined) {
+      updateData.email = email;
+    }
+    
+    if (req.file) {
+      updateData.profile_pic = req.file.filename;
+    }
+    
+    await Customer.update(updateData, { where: { id: user_id } });
 
     // MERGE CART: If session_id is provided, associate guest cart items with this user
     if (session_id) {
@@ -234,12 +248,17 @@ exports.updateProfile = async (req, res) => {
     
     const user = await Customer.findOne({ where: { id: user_id } });
 
+    const baseUrl = process.env.APP_URL || 'http://localhost:5000';
+    const profilePicUrl = user.profile_pic ? `${baseUrl}/uploads/ProfilePics/${user.profile_pic}` : null;
+
     return res.status(200).json({
       status: 1,
       message: "Profile updated successfully",
       user_name: user.name,
       user_id: user.id,
-      mobile: user.mobile
+      mobile: user.mobile,
+      email: user.email,
+      profile_pic: profilePicUrl
     });
   } catch (error) {
     console.error("updateProfile error:", error);

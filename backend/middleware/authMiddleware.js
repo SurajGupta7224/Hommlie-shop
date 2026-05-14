@@ -6,7 +6,10 @@ const verifyToken = async (req, res, next) => {
   const token = authHeader && authHeader.split(" ")[1]; // Bearer <token>
 
   if (!token) {
-    return res.status(401).json({ message: "No token provided. Access denied." });
+    return res.status(401).json({ 
+      status: 0,
+      message: "No token provided. Please login to continue." 
+    });
   }
 
   try {
@@ -39,7 +42,10 @@ const verifyToken = async (req, res, next) => {
     }
 
     if (!user) {
-      return res.status(401).json({ message: "User account missing." });
+      return res.status(401).json({ 
+        status: 0,
+        message: "User account missing or session expired. Please logout and login again." 
+      });
     }
 
     // Check status (handle both 'active' string for User and 1 for Customer)
@@ -60,13 +66,20 @@ const verifyToken = async (req, res, next) => {
 };
 
 // Returns a middleware configured for a specific permission block
-const requirePermission = (requiredPermissionString) => {
+const requirePermission = (requiredPermissions) => {
   return (req, res, next) => {
-    // Strict permission check, no automatic role bypasses
-    if (!req.userPermissions.includes(requiredPermissionString)) {
+    // If a single string is passed, wrap it in an array
+    const permissionsToVerify = Array.isArray(requiredPermissions) 
+      ? requiredPermissions 
+      : [requiredPermissions];
+
+    // Check if user has ANY of the required permissions
+    const hasPermission = permissionsToVerify.some(perm => req.userPermissions.includes(perm));
+
+    if (!hasPermission) {
       return res.status(403).json({ 
         message: "Forbidden Interface: You do not have the required permissions.",
-        required: requiredPermissionString
+        required: permissionsToVerify.join(' or ')
       });
     }
 

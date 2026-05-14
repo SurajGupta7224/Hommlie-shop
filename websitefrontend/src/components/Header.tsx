@@ -16,6 +16,7 @@ interface HeaderProps {
 export default function Header({ title, showBack = false }: HeaderProps) {
   const [location, setLocation] = useState('Koramangala, Bengaluru');
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const { isLoggedIn, user, logout, isLoginModalOpen, setIsLoginModalOpen } = useAuth();
   const { getTotalItems } = useCart();
   const navigate = useNavigate();
@@ -81,15 +82,64 @@ export default function Header({ title, showBack = false }: HeaderProps) {
                 )}
               </Link>
               {isLoggedIn ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground max-w-[100px] truncate">{user?.name || user?.mobile}</span>
+                <div className="relative">
                   <button 
-                    onClick={() => { logout(); navigate('/'); }}
-                    className="w-10 h-10 rounded-full bg-muted flex items-center justify-center transition-all active:scale-90 hover:bg-red-50"
-                    title="Logout"
+                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                    className="flex items-center gap-2 p-1 sm:pl-3 sm:pr-1 sm:py-1 rounded-full border border-border hover:bg-muted transition-all active:scale-95"
                   >
-                    <Icon name="ArrowRightOnRectangleIcon" size={20} className="text-foreground" />
+                    <span className="hidden sm:block text-sm font-semibold text-foreground max-w-[100px] truncate">{user?.name || user?.mobile}</span>
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center overflow-hidden">
+                      {user?.profile_pic ? (
+                        <img src={user.profile_pic} alt="User Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <Icon name="UserIcon" size={16} variant="solid" />
+                      )}
+                    </div>
                   </button>
+
+                  {/* Profile Dropdown */}
+                  {showProfileDropdown && (
+                    <>
+                      {/* Transparent backdrop to close dropdown when clicking outside */}
+                      <div className="fixed inset-0 z-40" onClick={() => setShowProfileDropdown(false)}></div>
+                      
+                      <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl shadow-black/5 border border-border overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                        <div className="p-4 bg-slate-50 border-b border-border">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Signed in as</p>
+                          <p className="font-bold text-primary text-lg truncate">{user?.name || user?.mobile}</p>
+                        </div>
+                        
+                        <div className="p-2 space-y-1">
+                          <Link to="/profile" onClick={() => setShowProfileDropdown(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-foreground transition-colors group">
+                            <Icon name="UserIcon" size={20} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                            <span className="font-semibold text-sm">Edit Profile</span>
+                          </Link>
+                          <Link to="/my-orders" onClick={() => setShowProfileDropdown(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-foreground transition-colors group">
+                            <Icon name="ShoppingBagIcon" size={20} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                            <span className="font-semibold text-sm">My Orders</span>
+                          </Link>
+                          <Link to="/addresses" onClick={() => setShowProfileDropdown(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-foreground transition-colors group">
+                            <Icon name="MapPinIcon" size={20} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                            <span className="font-semibold text-sm">Your Addresses</span>
+                          </Link>
+                          <Link to="/support" onClick={() => setShowProfileDropdown(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted text-foreground transition-colors group">
+                            <Icon name="ChatBubbleLeftRightIcon" size={20} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                            <span className="font-semibold text-sm">Help & Support</span>
+                          </Link>
+                        </div>
+
+                        <div className="p-2 border-t border-border">
+                          <button 
+                            onClick={() => { setShowProfileDropdown(false); logout(); navigate('/'); }}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 text-red-600 transition-colors group"
+                          >
+                            <Icon name="ArrowRightOnRectangleIcon" size={20} className="text-red-500 group-hover:text-red-600 transition-colors" />
+                            <span className="font-bold text-sm">Log out</span>
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <button 

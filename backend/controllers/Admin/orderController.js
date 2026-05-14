@@ -6,12 +6,10 @@ const {
   Warehouse, Product, ProductVariation, OrderStatusLog, User, Payment
 } = require("../../models/index");
 
-// --- Helper: generate unique order number ---
+// --- Helper: generate unique sequential order number ---
 const generateOrderNumber = async () => {
-  const today = new Date();
-  const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
-  const count = await Order.count();
-  return `ORD-${dateStr}-${String(count + 1).padStart(4, '0')}`;
+  const totalOrders = await Order.count();
+  return `ORD-${String(totalOrders + 1).padStart(4, '0')}`;
 };
 
 // GET /api/orders/serviceability?pincode=XXXXXX
@@ -243,7 +241,7 @@ const getOrders = async (req, res) => {
         { model: Warehouse, as: "warehouse", attributes: ["id", "name"] },
         { model: CustomerAddress, as: "address", attributes: ["id", "address_line", "city", "pincode"] },
         { model: OrderItem, as: "items", attributes: ["id", "quantity", "unit_price"] },
-        { model: User, as: "user", attributes: ["id", "name", "email", "phone", "status"] }
+        { model: User, as: "user", attributes: ["id", "name", "trade_name", "email", "phone", "status"] }
       ],
       order: [["created_at", "DESC"]],
       limit: parseInt(limit),
@@ -272,6 +270,7 @@ const getOrderById = async (req, res) => {
         { model: Warehouse, as: "warehouse", attributes: ["id", "name", "address", "contact_person", "contact_phone"] },
         { model: CustomerAddress, as: "address" },
         { model: User, as: "createdBy", attributes: ["id", "name"] },
+        { model: User, as: "user", attributes: ["id", "name", "trade_name", "email", "phone"] },
         {
           model: OrderItem, as: "items",
           include: [
@@ -295,7 +294,20 @@ const getOrderById = async (req, res) => {
     if (order.user_id !== req.user.id && !isAdmin) {
         return res.status(403).json({ message: "Forbidden: you can only access your own orders" });
     }
-    return res.status(200).json({ order });
+
+    // If this order belongs to a multi-vendor checkout, fetch sibling sub-orders count
+    let siblingInfo = null;
+    if (order.parent_order_number) {
+      const siblingCount = await Order.count({
+        where: { parent_order_number: order.parent_order_number }
+      });
+      siblingInfo = {
+        parent_order_number: order.parent_order_number,
+        total_sub_orders: siblingCount
+      };
+    }
+
+    return res.status(200).json({ order, multi_vendor_info: siblingInfo });
   } catch (err) {
     console.error("getOrderById error:", err);
     return res.status(500).json({ message: "Failed to fetch order" });
@@ -356,7 +368,51 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+// GET /api/orders/:id/related — all sub-orders sharing the same parent_order_number
+const getRelatedOrders = async (req, res) => {
+  try {
+    const order = await Order.findByPk(req.params.id, {
+      attributes: ['id', 'parent_order_number', 'user_id']
+    });
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    const isAdmin = req.user.role?.role_name?.toLowerCase().includes('admin');
+    if (order.user_id !== req.user.id && !isAdmin) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    if (!order.parent_order_number) {
+      return res.status(200).json({ related_orders: [], message: "This is a standalone (single-vendor) order" });
+    }
+
+    const related = await Order.findAll({
+      where: { parent_order_number: order.parent_order_number },
+      include: [
+        { model: User, as: "user", attributes: ["id", "name", "trade_name", "phone"] },
+        { model: Warehouse, as: "warehouse", attributes: ["id", "name"] },
+        {
+          model: OrderItem, as: "items",
+          include: [
+            { model: Product, as: "product", attributes: ["id", "name"] },
+            { model: ProductVariation, as: "variation", attributes: ["id", "variation_name", "sku"] }
+          ]
+        }
+      ],
+      order: [["created_at", "ASC"]]
+    });
+
+    return res.status(200).json({
+      parent_order_number: order.parent_order_number,
+      total_sub_orders: related.length,
+      related_orders: related
+    });
+  } catch (err) {
+    console.error("getRelatedOrders error:", err);
+    return res.status(500).json({ message: "Failed to fetch related orders" });
+  }
+};
+
 module.exports = {
   checkServiceability, checkStock, placeOrder,
-  getOrders, getOrderById, updateOrderStatus
+  getOrders, getOrderById, updateOrderStatus, getRelatedOrders
 };

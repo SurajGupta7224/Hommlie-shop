@@ -14,7 +14,7 @@ const SuggestionInput = ({ label, name, value, onChange, placeholder, light = fa
 
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (value.length < 1) {
+      if (!value || value.length < 1) {
         setSuggestions([]);
         return;
       }
@@ -83,7 +83,7 @@ const MappingReport = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState({ warehouse_id: '', pincode: '', area: '', city: '', district: '', state: '' });
+  const [filters, setFilters] = useState({ warehouse_id: '', pincode: '', area: '', city: '', region: '', district: '', state: '' });
 
   useEffect(() => {
     api.get('/warehouses', { params: { limit: 100, status: 1 } }).then(res => setWarehouses(res.data.warehouses));
@@ -486,6 +486,8 @@ const PincodeMapping = () => {
     state: ''
   });
 
+  const [totalPincodes, setTotalPincodes] = useState(0);
+
   useEffect(() => {
     api.get('/warehouses', { params: { limit: 100, status: 1 } }).then(res => setWarehouses(res.data.warehouses));
   }, []);
@@ -516,8 +518,26 @@ const PincodeMapping = () => {
       });
       setPincodes(res.data.pincodes);
       setTotalPages(res.data.pages);
+      setTotalPincodes(res.data.total); // Store total count
     } catch {
       toast.error("Failed to fetch pincodes");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectAllMatchingPincodes = async () => {
+    setLoading(true);
+    try {
+      // Fetch all matching IDs without pagination
+      const res = await api.get('/locations/pincodes', { 
+        params: { limit: 10000, ...filters } // High limit to get all
+      });
+      const allIds = res.data.pincodes.map(p => p.id);
+      setSelectedIds(allIds);
+      toast.success(`Selected all ${allIds.length} pincodes matching filters`);
+    } catch {
+      toast.error("Failed to select all pincodes");
     } finally {
       setLoading(false);
     }
@@ -612,11 +632,23 @@ const PincodeMapping = () => {
         </div>
       </div>
 
-      <div className="mb-4 flex justify-between items-center">
-        <h3 className="font-bold text-slate-800">Map Pincodes to Warehouse</h3>
-        <div className="text-xs font-bold bg-violet-50 text-violet-600 px-3 py-1 rounded-full border border-violet-100">
-          {selectedIds.length} Total Selected
+      <div className="mb-4 flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+        <div className="flex items-center gap-4">
+          <h3 className="font-bold text-slate-800">Map Pincodes to Warehouse</h3>
+          <div className="text-xs font-bold bg-violet-100 text-violet-700 px-3 py-1.5 rounded-full border border-violet-200 flex items-center gap-2 shadow-sm">
+            <CheckCircle className="w-3.5 h-3.5" />
+            {selectedIds.length} Total Selected
+          </div>
         </div>
+        
+        {totalPincodes > pincodes.length && selectedIds.length < totalPincodes && (
+          <button 
+            onClick={selectAllMatchingPincodes}
+            className="text-[10px] font-black uppercase tracking-widest text-violet-600 hover:text-white hover:bg-violet-600 px-4 py-2 rounded-lg border-2 border-violet-200 hover:border-violet-600 transition-all active:scale-95 shadow-sm bg-white"
+          >
+            Select All {totalPincodes} Results Matching Filters
+          </button>
+        )}
       </div>
 
       <div className="overflow-x-auto border-2 border-slate-200 rounded-2xl mb-6 relative min-h-[300px] shadow-sm">
@@ -780,6 +812,7 @@ const ProductAllocation = () => {
           <div><label className="block text-xs font-bold text-slate-500 mb-2">Price (₹) *</label><input required type="number" step="0.01" name="price" value={formData.price} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-sm outline-none focus:ring-2 focus:ring-violet-200" /></div>
           <div><label className="block text-xs font-bold text-slate-500 mb-2">Discount Price (₹)</label><input type="number" step="0.01" name="discount_price" value={formData.discount_price} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-sm outline-none focus:ring-2 focus:ring-violet-200" /></div>
           <div><label className="block text-xs font-bold text-slate-500 mb-2">Delivery Charge (₹)</label><input type="number" step="0.01" name="delivery_charge" value={formData.delivery_charge} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-sm outline-none focus:ring-2 focus:ring-violet-200" /></div>
+          <div><label className="block text-xs font-bold text-slate-500 mb-2">Handling Charge (₹)</label><input type="number" step="0.01" name="handling_charge" value={formData.handling_charge} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-sm outline-none focus:ring-2 focus:ring-violet-200" /></div>
           <div><label className="block text-xs font-bold text-slate-500 mb-2">Tax (%)</label><input type="number" step="0.01" name="tax_percent" value={formData.tax_percent} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-sm outline-none focus:ring-2 focus:ring-violet-200" /></div>
           
           <div className="md:col-span-4 flex justify-end"><button type="submit" disabled={submitting} className="px-8 py-2 rounded-xl font-bold bg-violet-600 text-white disabled:opacity-50">Allocate Product</button></div>
@@ -791,7 +824,7 @@ const ProductAllocation = () => {
         <table className="w-full text-left">
           <thead>
             <tr className="bg-slate-50 text-[10px] uppercase font-black text-slate-400">
-              <th className="p-4">Warehouse</th><th className="p-4">Product</th><th className="p-4">Variation / SKU</th><th className="p-4 text-right">Stock</th><th className="p-4 text-right">Price</th><th className="p-4 text-right">Delivery</th>
+              <th className="p-4">Warehouse</th><th className="p-4">Product</th><th className="p-4">Variation / SKU</th><th className="p-4 text-right">Stock</th><th className="p-4 text-right">Price</th><th className="p-4 text-right">Delivery</th><th className="p-4 text-right">Handling</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -801,8 +834,9 @@ const ProductAllocation = () => {
                 <td className="p-4 text-sm text-slate-600">{inv.product?.name}</td>
                 <td className="p-4"><p className="text-sm text-slate-600">{inv.variation?.variation_name}</p><p className="text-xs text-slate-400 font-mono">{inv.variation?.sku}</p></td>
                 <td className="p-4 text-right font-mono font-bold text-slate-800">{inv.stock}</td>
-                <td className="p-4 text-right font-mono text-slate-800">₹{inv.price}</td>
+                 <td className="p-4 text-right font-mono text-slate-800">₹{inv.price}</td>
                 <td className="p-4 text-right font-mono text-slate-800">₹{inv.delivery_charge || 0}</td>
+                <td className="p-4 text-right font-mono text-slate-800">₹{inv.handling_charge || 0}</td>
               </tr>
             ))}
           </tbody>
